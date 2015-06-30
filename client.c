@@ -1,20 +1,5 @@
-#include "sys/socket.h"
-#include "netinet/in.h"
-#include "arpa/inet.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include <fcntl.h>
-#include <unistd.h>
-
-#ifndef N
-#define N 5000
-#endif
-
-void error(const char * str){
-  perror(str);
-  exit(1);
-}
+#include "common.h"
+#include "connect.h"
 
 int main(int argc, char const *argv[])
 {
@@ -45,7 +30,8 @@ int main(int argc, char const *argv[])
   ssize_t n;
   while(!feof(fp)){
     memset(out_data,'\0',N);
-    n = recv(serv,out_data,N,0);
+    // n = recv(serv,out_data,N,0);
+    n = recv_all(serv,out_data,N);
     if(n<0) error("recv out_data error");
     if(n==0) break;
     // write(1,out_data,n);
@@ -55,7 +41,8 @@ int main(int argc, char const *argv[])
     n = fread(in_data,sizeof(char),N,fp);
     if(n<0) error("read in_data error");
     if(n==0) break;
-    if(send(serv,in_data,n,0)<0) error("send error");
+    // if(send(serv,in_data,n,0)<0) error("send error");
+    if(send_all(serv,in_data,N)<0) error("send error");
   }
 
 
