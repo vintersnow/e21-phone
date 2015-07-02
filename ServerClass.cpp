@@ -12,17 +12,21 @@ Server::Server(int port){
   if(listen(listener,10)<0) error("linten error");
 
   pthread_mutex_init(&mutex, NULL);
+  const char *cmd_play = "play -q -t raw -b 16 -c 1 -e s -r 44100 -";
+  if((fp = popen(cmd_play,"w"))==NULL) error("popen play");
+
 }
 
 Server::~Server(){
   close(listener);
 }
 
-void Server::broadcast(Client *c_o,char *buf){
+void Server::broadcast(Client *c_o,char *buf,int len){
   // printf("broadcast!!\n");
   std::map<Client*,bool>::iterator it;
   Client *c;
-  // int s = clients.size();
+  int s = clients.size();
+  // printf("%d\n",s );
   // pthread_t *pt = new pthread_t[s];
   // int i=0;
   for(it = clients.begin(); it!=clients.end(); it++){
@@ -34,14 +38,18 @@ void Server::broadcast(Client *c_o,char *buf){
 
       // pthread_mutex_lock(&mutex);
       // strcpy(c->sendbuf,buf);
-      c->sendbuf = buf;
+      // c->sendbuf = buf;
       // pthread_mutex_unlock(&mutex);
 
-      c->cl_send();
+      c->cl_send(buf,len);
       // pthread_create(&pt[i++],NULL,Client::lanch_send,c);
       // printf("really??\n");
     }
   }
+
+  // fwrite(buf,sizeof(char),N,fp);
+  // c_o->sendbuf = buf;
+  // c_o->cl_send(buf,len);
   // for (int j = 0; j < s; ++j)
   // {
   //   pthread_join(pt[j],NULL);

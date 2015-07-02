@@ -42,8 +42,10 @@ public:
   socklen_t addr_len;
   Server *s;
 
+  ///////////////test
+
   static void* lanch_send(void *p){
-    static_cast<Client*>(p)->cl_send();
+    // static_cast<Client*>(p)->cl_send(sendbuf ,int len);
     pthread_exit(NULL);
   }
 
@@ -53,7 +55,7 @@ public:
   // };
   Client();
   ~Client();
-  void cl_send();
+  void cl_send(char *buf ,int len);
   void cl_read();
   void cl_stop();
   void set_name(char *,char *);
@@ -68,8 +70,11 @@ class Server
 public:
    pthread_mutex_t mutex;
   std::map<Client*, bool> clients;
-  void broadcast(Client *c,char *buf);
+  void broadcast(Client *c,char *buf,int len);
   int listener;
+
+  ////////////////////////test
+  FILE *fp;
 
   Server(int port);
   ~Server();

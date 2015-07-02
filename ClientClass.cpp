@@ -54,12 +54,13 @@ void Client::cl_read(){
   recv_all(conn,readbuf,N);
 }
 
-void Client::cl_send(){
-  int len = strlen(sendbuf);
+void Client::cl_send(char *buf ,int len){
+
+  // int len = strlen(sendbuf);
   if(len > 0){
     // pthread_mutex_lock(&mutex);
     int n;
-    if((n=send(conn,sendbuf,len,0))<0) cl_stop();
+    if((n=send(conn,buf,len,0))<0) cl_stop();
     // printf("%d\n",n);
     // pthread_mutex_unlock(&mutex);
   }
@@ -82,8 +83,8 @@ void Client::sender(){
 
 void Client::receiver(){
 ////////////////////test
-  const char *cmd_play = "play -q -t raw -b 16 -c 1 -e s -r 44100 -";
-  FILE *fp;
+  // const char *cmd_play = "play -q -t raw -b 16 -c 1 -e s -r 44100 -";
+  // FILE *fp;
   // if((fp = popen(cmd_play,"w"))==NULL) error("popen play");
   // char out_data[N];
   // ssize_t n;
@@ -103,11 +104,11 @@ void Client::receiver(){
     if(n<0)error("receiver error");
     if(n==0) break;
     // printf("receive!!\n");
-    // s->broadcast(this,readbuf);
+    s->broadcast(this,readbuf,n);
     // fwrite(readbuf,sizeof(char),n,fp);
     // strcpy(sendbuf,readbuf);
-    sendbuf = readbuf;
-    if((n=send(conn,sendbuf,n,0))<0) cl_stop();
+    // sendbuf = readbuf;
+    // if((n=send(conn,sendbuf,n,0))<0) cl_stop();
   }
 }
 
