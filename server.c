@@ -1,6 +1,8 @@
-#include "common.h"
-#include "connect.h"
+#include "ClientServerClass.h"
 
+void* run(void *args){
+  return NULL;
+}
 
 int main(int argc, char const *argv[])
 {
@@ -9,50 +11,68 @@ int main(int argc, char const *argv[])
   int port = atoi(argv[1]);
   printf("port:%d\n",port);
 
-  int listener = socket(PF_INET,SOCK_STREAM,0);
-  if(listener==-1) error("socket");
+  Server *s=new Server(port);
+  std::vector<pthread_t *> pth;
 
-  struct sockaddr_in addr;
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(port);
-  addr.sin_addr.s_addr = INADDR_ANY;
-  if(bind(listener,(struct sockaddr *)&addr,sizeof(addr))<0) error("bind error");
+  Client *c;
+  while(1){
+    struct sockaddr_in client_addr;
+    socklen_t addr_len = sizeof(struct sockaddr_in);
+    int conn = accept(s->listener,(struct sockaddr *)&client_addr,&addr_len);
 
-  if(listen(listener,10)<0) error("linten error");
+// pthread_t *pt;
 
-  struct sockaddr_in client_addr;
-  socklen_t addr_len = sizeof(struct sockaddr_in);
-  int client = accept(listener,(struct sockaddr *)&client_addr,&addr_len);
-  if(client<0) error("client error");
+    if(conn<0) error("client");
+    else{
+      c = new Client(s, NULL, conn, &client_addr, &addr_len);
+      // c = new Client;
+      s->clients[c] = true;
+      // printf("connect client %s\n",c->name);
+      printf("connect client\n");
 
-  const char *cmd = "rec -t raw -b 16 -c 1 -e s -r 44100 -";
-  FILE *fp;
-  if((fp=popen(cmd,"r"))==NULL) error("popen");
-  const char *cmd_play = "play -t raw -b 16 -c 1 -e s -r 44100 -";
-  FILE *fp_p;
-  if((fp_p = popen(cmd_play,"w"))==NULL) error("popen play");
+      // pthread_t *pt = new pthread_t;
+      // pth.push_back(new pthread_t);
+      // pthread_create(pth.back(),NULL,run,(void *)c);
 
-  char in_data[N],out_data[N];
-  ssize_t n;
-  while(!feof(fp)){
-    // memset(in_data,'\0',N);
-    n = fread(in_data,sizeof(char),N,fp);
-    if(n<0) error("read in_data error");
-    if(n==0) break;
-    if(send(client,in_data,n,0)<0) error("send error");
-
-    // memset(out_data,'\0',N);
-    // n = recv(client,out_data,N,0);
-    n = recv_all(client,out_data,N);
-    if(n<0) error("recv out_data error");
-    if(n==0) break;
-    // write(1,out_data,n);
-    fwrite(out_data,sizeof(char),n,fp_p);
+    }
+  }
+  std::map<Client*,bool>::iterator it;
+  for(it = s->clients.begin(); it!=s->clients.end(); it++){
+    Client *c = it->first;
+    s->clients.erase(it);
+    c->cl_stop();
+    delete(c);
   }
 
-  close(client);
-  close(listener);
-  pclose(fp);
+  // const char *cmd = "rec -t raw -b 16 -c 1 -e s -r 44100 -";
+  // FILE *fp;
+  // if((fp=popen(cmd,"r"))==NULL) error("popen");
+  // const char *cmd_play = "play -t raw -b 16 -c 1 -e s -r 44100 -";
+  // FILE *fp_p;
+  // if((fp_p = popen(cmd_play,"w"))==NULL) error("popen play");
+
+  // char in_data[N],out_data[N];
+  // ssize_t n;
+  // while(!feof(fp)){
+  //   // memset(in_data,'\0',N);
+  //   n = fread(in_data,sizeof(char),N,fp);
+  //   if(n<0) error("read in_data error");
+  //   if(n==0) break;
+  //   if(send(client,in_data,n,0)<0) error("send error");
+
+  //   // memset(out_data,'\0',N);
+  //   // n = recv(client,out_data,N,0);
+  //   n = recv_all(client,out_data,N);
+  //   if(n<0) error("recv out_data error");
+  //   if(n==0) break;
+  //   // write(1,out_data,n);
+  //   fwrite(out_data,sizeof(char),n,fp_p);
+  // }
+
+  // close(client)er
+  // close(listener);
+  delete(s);
+  // pclose(fp);
 
   return 0;
 }
