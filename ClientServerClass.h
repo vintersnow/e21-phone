@@ -18,15 +18,11 @@ private:
   pthread_mutex_t mutex;
 
   static void* lanch_receiver(void *p){
-    // printf("lanch receiver\n");
     static_cast<Client*>(p)->receiver();
-    // printf("is go(r)?\n");
     pthread_exit(NULL);
   };
   static void* lanch_sender(void *p){
-    // printf("lanch sender\n");
     static_cast<Client*>(p)->sender();
-    // printf("is go(s)?\n");
     pthread_exit(NULL);
   };
 
@@ -37,25 +33,24 @@ public:
   bool stop;
   // char sendbuf[N];
   char *sendbuf;
+  int sendlen;
   char readbuf[N];
   struct sockaddr_in addr;
   socklen_t addr_len;
   Server *s;
 
-  ///////////////test
 
   static void* lanch_send(void *p){
-    // static_cast<Client*>(p)->cl_send(sendbuf ,int len);
+    Client *c = (Client*)(p);
+    c->cl_send(c->sendbuf,c->sendlen);
     pthread_exit(NULL);
   }
 
   Client(Server *s,char *name,int conn,struct sockaddr_in *client_addr,socklen_t *len);
-  // Client(){
-  //   printf("nothing\n");
-  // };
   Client();
   ~Client();
   void cl_send(char *buf ,int len);
+  void cl_send();
   void cl_read();
   void cl_stop();
   void set_name(char *,char *);
@@ -70,14 +65,16 @@ class Server
 public:
    pthread_mutex_t mutex;
   std::map<Client*, bool> clients;
-  void broadcast(Client *c,char *buf,int len);
   int listener;
+  char *sendbuf;
+  int sendlen;
 
-  ////////////////////////test
-  FILE *fp;
 
   Server(int port);
   ~Server();
+  void broadcast(Client *c,char *buf,int len);
+  void free_clients();
+  void free_client(Client *);
 
 };
 #endif

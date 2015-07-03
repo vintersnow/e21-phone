@@ -6,7 +6,6 @@ void Client::set_name(char *name,char *str){
 }
 
 Client::Client(Server *s, char *name,int conn,struct sockaddr_in *client_addr,socklen_t *len){
-  // Client *c = new Client();
   // printf("Constructor\n");
   this->s = s;
   this->conn = conn;
@@ -25,25 +24,21 @@ Client::Client(Server *s, char *name,int conn,struct sockaddr_in *client_addr,so
 
   pthread_mutex_init(&mutex, NULL);
   pthread_create(&th_receiver,NULL,Client::lanch_receiver,this);
-  pthread_create(&th_sender,NULL,Client::lanch_sender,this);
-
-  // return this;
-  // printf("end Constructor\n");
-}
-
-Client::Client(){
-  printf("nothing!!!!\n");
+  // pthread_create(&th_sender,NULL,Client::lanch_sender,this);
 
 }
+
 
 Client::~Client(){
   pthread_cancel(th_receiver);
-  pthread_cancel(th_sender);
+  // pthread_cancel(th_sender);
 
   pthread_join(th_receiver,NULL);
-  pthread_join(th_sender,NULL);
+  // pthread_join(th_sender,NULL);
 
   pthread_mutex_destroy(&mutex);
+
+  close(conn);
 }
 
 void Client::cl_read(){
@@ -55,59 +50,42 @@ void Client::cl_read(){
 }
 
 void Client::cl_send(char *buf ,int len){
-
-  // int len = strlen(sendbuf);
   if(len > 0){
     // pthread_mutex_lock(&mutex);
-    int n;
-    if((n=send(conn,buf,len,0))<0) cl_stop();
-    // printf("%d\n",n);
+    if(send(conn,buf,len,0)<0) cl_stop();
     // pthread_mutex_unlock(&mutex);
   }
+}
+void Client::cl_send(){
+  cl_send(s->sendbuf,s->sendlen);
 }
 
 void Client::cl_stop(){
   // free();
   pthread_cancel(th_receiver);
-  pthread_cancel(th_sender);
+  // pthread_cancel(th_sender);
+  stop = true;
   close(conn);
 }
 
 void Client::sender(){
-  // printf("startSender\n");
-  // while(1){
-
-  // }
 }
 
 
 void Client::receiver(){
-////////////////////test
-  // const char *cmd_play = "play -q -t raw -b 16 -c 1 -e s -r 44100 -";
-  // FILE *fp;
-  // if((fp = popen(cmd_play,"w"))==NULL) error("popen play");
-  // char out_data[N];
-  // ssize_t n;
 
-//////////////////test
-
-
-  printf("start receiver\n");
+  // printf("start receiver\n");
   ssize_t n;
   while(1){
     memset(readbuf,'\0',N);
-    // printf("start receivering\n");
     // pthread_mutex_lock(&(s->mutex));
     n = recv(conn,readbuf,N,0);
     // pthread_mutex_unlock(&(s->mutex));
 
     if(n<0)error("receiver error");
     if(n==0) break;
-    // printf("receive!!\n");
     s->broadcast(this,readbuf,n);
-    // fwrite(readbuf,sizeof(char),n,fp);
-    // strcpy(sendbuf,readbuf);
-    // sendbuf = readbuf;
+
     // if((n=send(conn,sendbuf,n,0))<0) cl_stop();
   }
 }
