@@ -14,6 +14,9 @@
 #include "string"
 #include "sstream"
 #include "vector"
+#include <complex>
+#include <math.h>
+
 
 
 void error(const char * str);

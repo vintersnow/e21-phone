@@ -1,29 +1,10 @@
-#include <assert.h>
-#include <complex>
-#include <math.h>
-
 #include "fft.h"
 
 typedef short sample_t;
 FILE *p_file, *p_file2;
 char buf[N], buf2[N];
 
-// typedef _Complex complex;
-
 using namespace std;
-
-void server(char **);
-void client(char **);
-void send_recv(int);
-//void marge(char *, short*);
-//void unfold(short *, char*);
-void sample_to_complex(short *, complex<double>*, long);
-void complex_to_sample(complex<double> *, short *, long);
-void fft_r(complex<double> *, complex<double> *, long, complex<double>);
-void fft(complex<double> *, complex<double> *, long);
-void ifft(complex<double> *, complex<double> *, long);
-void zero_data(complex<double> *, complex<double> *);
-void cut_data(complex<double> *, complex<double> *);
 
 void server(char **argv) {
   int portnum = atoi(argv[1]);
@@ -106,9 +87,9 @@ void send_recv(int s) {
 
   int m, n;
   short in_data[N], out_data[N];
-  int n_data = (TOP - BOTTOM) * FN / R; //number of datas to send
-  complex<double> * send_data = new complex<double>[FN];
-  complex<double> * get_data = new complex<double>[FN];
+  // int n_data = (TOP - BOTTOM) * FN / R; //number of datas to send
+  // complex<double> * send_data = new complex<double>[FN];
+  // complex<double> * get_data = new complex<double>[FN];
   complex<double> * X = new complex<double>[FN];
   complex<double> * Y = new complex<double>[FN];
   int cut = BOTTOM*FN/R+1;
@@ -119,9 +100,9 @@ void send_recv(int s) {
     fft(X, Y, FN);
     // cut_data(Y, send_data);
     // printf("%f\n", (double)sizeof(complex<double>)*n_data/N);
-    send(s, Y+cut, sizeof(complex<double>) * n_data,0);
+    send(s, Y+cut, BUFFER_SIZE,0);
 
-    n = recv(s, Y+cut, sizeof(complex<double>) * n_data,0);
+    n = recv(s, Y+cut, BUFFER_SIZE,0);
     // zero_data(send_data, Y);
     ifft(Y, X, FN);
     complex_to_sample(X, out_data, FN);
@@ -183,12 +164,22 @@ void complex_to_sample(complex<double> * X, short * s, long n) {
   }
 }
 
+void set_com_struct(complex_set *c,complex<double>*x,complex<double>*y,long n,complex<double>w){
+  c->x = x;
+  c->y = y;
+  c->w = w;
+  c->n = n;
+}
+
 void fft(complex<double> * x, complex<double> * y, long n) {
   long i;
   double arg = 2.0 * M_PI / n;
   // complex<double> w = cos(arg) - 1.0i * sin(arg);
   complex<double>w(cos(arg),-sin(arg));
-  fft_r(x, y, n, w);
+  complex_set c;
+  set_com_struct(&c,x,y,n,w);
+  // fft_r(x, y, n, w);
+  fft_r_th((void *)&c);
 
   for (i = 0; i < n; i++) {
     if ((i*R/n < BOTTOM) || (i*R/n > TOP)) {
@@ -202,11 +193,52 @@ void ifft(complex<double> * y, complex<double> * x, long n) {
   double arg = 2.0 * M_PI / n;
   // complex<double> w = cos(arg) + 1.0i * sin(arg);
   complex<double> w(cos(arg),sin(arg));
-  fft_r(y, x, n, w);
+  complex_set c;
+  set_com_struct(&c,y,x,n,w);
+  // fft_r(y, x, n, w);
+  fft_r_th((void*)&c);
 }
 
+
+
 void* fft_r_th(void *args){
-  
+  complex_set *c = (complex_set *)args;
+  complex<double> *x = c->x;
+  complex<double> *y = c->y;
+  complex<double> w = c->w;
+  long n = c->n;
+
+  // pthread_t th[2];
+
+  if (n == 1) { y[0] = x[0]; }
+  else {
+    // complex<double> W = 1.0;
+    complex<double>W(1.0,0);
+    long i;
+    for (i = 0; i < n/2; i++) {
+      y[i]     =     (x[i] + x[i+n/2]); /* 偶数行 */
+      y[i+n/2] = W * (x[i] - x[i+n/2]); /* 奇数行 */
+      W *= w;
+    }
+    complex_set c1,c2;
+    set_com_struct(&c1,y,x,n/2,w*w);
+    set_com_struct(&c2,y+n/2,x+n/2,n/2,w*w);
+    // fft_r(y,     x,     n/2, w * w);
+    // fft_r(y+n/2, x+n/2, n/2, w * w);
+    // pthread_create(&th[0],NULL,fft_r_th,&c1);
+    // pthread_create(&th[1],NULL,fft_r_th,&c2);
+    fft_r_th((void*)&c1);
+    fft_r_th((void*)&c2);
+    // for (int i = 0; i < 2; ++i)
+    // {
+    //   pthread_join(th[i],NULL);
+    // }
+    for (i = 0; i < n/2; i++) {
+      y[2*i]   = x[i];
+      y[2*i+1] = x[i+n/2];
+    }
+  }
+  return NULL;
 }
 
 void fft_r(complex<double> * x, complex<double> * y, long n, complex<double> w) {
@@ -229,8 +261,8 @@ void fft_r(complex<double> * x, complex<double> * y, long n, complex<double> w) 
   }
 }
 
-int main(int argc, char **argv) {
-  if (argc == 2) server(argv);
-  else client(argv);
-  return 0;
-}
+// int main(int argc, char **argv) {
+//   if (argc == 2) server(argv);
+//   else client(argv);
+//   return 0;
+// }

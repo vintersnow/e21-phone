@@ -23,7 +23,6 @@ Client::Client(Server *s, char *name,int conn,struct sockaddr_in *client_addr,so
 
   pthread_mutex_init(&mutex, NULL);
   pthread_create(&th_receiver,NULL,Client::lanch_receiver,this);
-  // pthread_create(&th_sender,NULL,Client::lanch_sender,this);
 
   printf("new Client %s connected\n",this->name);
 }
@@ -45,20 +44,15 @@ void Client::cl_read(){
   // int n;
   // memset(c->sendbuf,'\0',N);
   // char buf[N];
-  memset(readbuf,'\0',N);
-  recv_all(conn,readbuf,N);
+  // memset(readbuf,'\0',BUFFER_SIZE);
+  recv_all(conn,readbuf,BUFFER_SIZE);
 }
 
 void Client::cl_send(char *buf ,int len){
   // printf("try send\n");
-  if(len > 0){
-    // pthread_mutex_lock(&mutex);
-    if(send(conn,buf,len,0)<0) cl_stop();
-    // pthread_mutex_unlock(&mutex);
-  }
 }
 void Client::cl_send(){
-  cl_send(s->sendbuf,s->sendlen);
+  // cl_send(s->sendbuf,s->sendlen);
 }
 
 void Client::cl_stop(){
@@ -70,7 +64,13 @@ void Client::cl_stop(){
   printf("client %s disconnected\n",name);
 }
 
-void Client::sender(){
+void Client::sender(char *buf ,int len){
+  int n;
+  if(len > 0){
+    // pthread_mutex_lock(&mutex);
+    if((n=send(conn,buf,len,0))<0) cl_stop();
+    // pthread_mutex_unlock(&mutex);
+  }
 }
 
 
@@ -79,13 +79,17 @@ void Client::receiver(){
   // printf("start receiver\n");
   ssize_t n;
   while(1){
-    memset(readbuf,'\0',N);
+    memset(readbuf,'\0',BUFFER_SIZE);
     // pthread_mutex_lock(&(s->mutex));
     // printf("start recv\n");
-    n = recv(conn,readbuf,N,0);
+
+    n = recv(conn,readbuf,BUFFER_SIZE,0);
+    // n= recv(conn,Y+cut,BUFFER_SIZE,0);
+
     // pthread_mutex_unlock(&(s->mutex));
     // printf("recv %ld\n",n );
-
+    // write(fp,Y,FN);
+    // exit(1);
     // if(n<0)error("receiver error");
     // if(n<0) break;
     if(n<=0) break;

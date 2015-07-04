@@ -1,12 +1,16 @@
 #include "common.h"
 #include "connect.h"
 #include "pthread.h"
+#include "fft.h"
+
+
+using namespace std;
 
 struct Data
 {
-  char data[N];
+  short data[N];
   bool not_send;
-  int len;
+  long len;
 };
 
 struct data_set{
@@ -15,8 +19,6 @@ struct data_set{
   int index;
   Data data[2];
 };
-
-
 
 pthread_mutex_t send_mutex;
 
@@ -28,7 +30,7 @@ void* _read(void *args){
   while(1){
     index = (data->index + 1)%2;
     d = &(data->data[index]);
-    d->len=fread(d->data,sizeof(char),N,data->fp);
+    d->len=fread(d->data,sizeof(short),N,data->fp);
     if(d->len<0) error("read");
     if(d->len == 0) break;
 
@@ -42,11 +44,17 @@ void* _send(void *args){
   int index;
   printf("send\n");
   Data *d;
+  complex<double> *X = new complex<double>[FN];
+  complex<double> *Y = new complex<double>[FN];
+  const long cut = BOTTOM*FN/R+1;
+
   while(1){
     index = data->index;
     d = &(data->data[index]);
     if(d->not_send){
-      if(send(data->conn,d->data,d->len,0)<0) error("send error");
+      sample_to_complex(d->data,X,FN);
+      fft(X,Y,FN);
+      if(send(data->conn,Y+cut,BUFFER_SIZE,0)<0) error("send error");
       d->not_send = false;
     }else{
       pthread_mutex_lock(&send_mutex);
@@ -54,12 +62,14 @@ void* _send(void *args){
       pthread_mutex_unlock(&send_mutex);
     }
   }
+  free(X);free(Y);
   return NULL;
 }
 
 void* my_send(void *args){
   // data_set * data = (data_set *)args;
-  // char in_data[2][N];
+  // short in_data[N];
+  // short out_data[N];
   pthread_mutex_init(&send_mutex, NULL);
   pthread_t th[2];
   pthread_create(&th[0],NULL,_read,args);
@@ -70,35 +80,48 @@ void* my_send(void *args){
   }
   pthread_mutex_destroy(&send_mutex);
 
+  // complex<double> *X = new complex<double>[FN];
+  // complex<double> *Y = new complex<double>[FN];
+  // const long cut = BOTTOM*FN/R+1;
+// int fp;
+  // if((fp=open("./test_cl",O_WRONLY,O_CREAT))<0) error("open");
   // ssize_t n;
   // while(1){
-  //   memset(in_data,'\0',N);
-  //   n = fread(in_data,sizeof(char),N,data->fp);
+  //   memset(in_data,0,sizeof(short) * N);
+  //   n = fread(in_data,sizeof(short),N,data->fp);
   //   // printf("%ld\n",n);
   //   if(n<0) error("read in_data error");
   //   if(n==0) break;
-  //   if((n=send(data->conn,in_data,n,0))<0) error("send error");
-  //   // printf("%ld\n", n);
+  //   sample_to_complex(in_data,X,FN);
+  //   fft(X,Y,FN);
+  //   if((n=send(data->conn,Y+cut,BUFFER_SIZE,0))<0) error("send error");
   //   // if(send_all(data->conn,in_data,N)<0) error("send error");
-  //   // printf("send\n");
+
   // }
   return NULL;
 }
 
 void* my_recv(void*args){
   data_set *data = (data_set *)args;
-  char out_data[N];
+  short out_data[N];
   ssize_t n;
+  complex<double> * X = new complex<double>[FN];
+  complex<double> * Y = new complex<double>[FN];
+  const long cut = BOTTOM*FN/R+1;
+  // const long n_data = (TOP - BOTTOM) * FN / R;
+
   while(1){
-    memset(out_data,'\0',N);
+    // memset(out_data,0,sizeof(short) * N);
+    memset(Y,0,FN*sizeof(complex<double>));
     // printf("start recv\n");
-    n = recv(data->conn,out_data,N,0);
+    // n = recv(data->conn,out_data,N,0);
+    n=recv(data->conn,Y+cut,BUFFER_SIZE,0);
     // n = recv_all(data->conn,out_data,N);
     if(n<0) error("recv out_data error");
     if(n==0) break;
-    // printf("%ld\n",n);
-    // write(1,out_data,n);
-    fwrite(out_data,sizeof(char),n,data->fp);
+    ifft(Y,X,FN);
+    complex_to_sample(X,out_data,FN);
+    fwrite(out_data,sizeof(short),N,data->fp);
   }
   return NULL;
 }
@@ -121,10 +144,8 @@ int main(int argc, char const *argv[])
   if(ret==-1) error("can not connect");
   printf("connecttion success\n");
 
-  // const char *cmd = "rec -V1 -q -t raw -b 16 -c 1 -e s -r 44100 -";
   FILE *fp;
   if((fp=popen(COMMAND,"r"))==NULL) error("popen");
-  // const char *cmd_play = "play -q -t raw -b 16 -c 1 -e s -r 44100 -";
   FILE *fp_p;
   if((fp_p = popen(COMMAND2,"w"))==NULL) error("popen play");
 
