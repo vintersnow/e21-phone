@@ -117,12 +117,12 @@ void send_recv(int s) {
     if (m == 0) break;
     sample_to_complex(in_data, X, FN);
     fft(X, Y, FN);
-    cut_data(Y, send_data);
-    printf("%f\n", (double)sizeof(complex<double>)*n_data/N);
-    send(s, send_data, sizeof(complex<double>) * n_data,0);
+    // cut_data(Y, send_data);
+    // printf("%f\n", (double)sizeof(complex<double>)*n_data/N);
+    send(s, Y+cut, sizeof(complex<double>) * n_data,0);
 
-    n = recv(s, get_data, sizeof(complex<double>) * n_data,0);
-    zero_data(get_data, Y);
+    n = recv(s, Y+cut, sizeof(complex<double>) * n_data,0);
+    // zero_data(send_data, Y);
     ifft(Y, X, FN);
     complex_to_sample(X, out_data, FN);
     fwrite(out_data, sizeof(short), N, p_file2);
@@ -186,7 +186,8 @@ void complex_to_sample(complex<double> * X, short * s, long n) {
 void fft(complex<double> * x, complex<double> * y, long n) {
   long i;
   double arg = 2.0 * M_PI / n;
-  complex<double> w = cos(arg) - 1.0j * sin(arg);
+  // complex<double> w = cos(arg) - 1.0i * sin(arg);
+  complex<double>w(cos(arg),-sin(arg));
   fft_r(x, y, n, w);
 
   for (i = 0; i < n; i++) {
@@ -199,14 +200,20 @@ void fft(complex<double> * x, complex<double> * y, long n) {
 
 void ifft(complex<double> * y, complex<double> * x, long n) {
   double arg = 2.0 * M_PI / n;
-  complex<double> w = cos(arg) + 1.0j * sin(arg);
+  // complex<double> w = cos(arg) + 1.0i * sin(arg);
+  complex<double> w(cos(arg),sin(arg));
   fft_r(y, x, n, w);
+}
+
+void* fft_r_th(void *args){
+  
 }
 
 void fft_r(complex<double> * x, complex<double> * y, long n, complex<double> w) {
   if (n == 1) { y[0] = x[0]; }
   else {
-    complex<double> W = 1.0;
+    // complex<double> W = 1.0;
+    complex<double>W(1.0,0);
     long i;
     for (i = 0; i < n/2; i++) {
       y[i]     =     (x[i] + x[i+n/2]); /* 偶数行 */
