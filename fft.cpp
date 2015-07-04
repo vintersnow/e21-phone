@@ -118,7 +118,7 @@ void send_recv(int s) {
     sample_to_complex(in_data, X, FN);
     fft(X, Y, FN);
     cut_data(Y, send_data);
-    // printf("%f\n", (double)sizeof(complex<double>)*n_data/N);
+    printf("%f\n", (double)sizeof(complex<double>)*n_data/N);
     send(s, send_data, sizeof(complex<double>) * n_data,0);
 
     n = recv(s, get_data, sizeof(complex<double>) * n_data,0);
