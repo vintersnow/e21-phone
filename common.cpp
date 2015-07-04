@@ -5,8 +5,9 @@ void error(const char * str){
   exit(1);
 }
 
-int recv_all(int client,char *data,int len){
+int recv_all(int client,void *args,int len){
   int r=0,n=0;
+  char *data = (char *)args;
   while(r<len){
     n = recv(client,data+r,len-r,0);
     if(n==-1) error("recv_all");
@@ -19,8 +20,9 @@ int recv_all(int client,char *data,int len){
   return r;
 }
 
-int send_all(int client,char *data,int len){
+int send_all(int client,void *args,int len){
   int r=0,n=0;
+  char *data =(char *)args;
   while(r<len){
     n = send(client,data+r,len-r,0);
     if(n==-1) error("send_all");

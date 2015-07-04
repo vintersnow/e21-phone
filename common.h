@@ -18,7 +18,7 @@
 
 void error(const char * str);
 
-int recv_all(int client,char *data,int len);
+int recv_all(int client,void *data,int len);
 
-int send_all(int client,char *data,int len);
+int send_all(int client,void *data,int len);
 #endif

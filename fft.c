@@ -16,8 +16,8 @@
 #define N 16384
 #define FN N
 #define R 44100
-#define COMMAND "rec -t raw -b 16 -c 1 -e s -r 44100 -"
-#define COMMAND2 "play -t raw -b 16 -c 1 -e s -r 44100 -"
+#define COMMAND "rec -q -t raw -b 16 -c 1 -e s -r 44100 -"
+#define COMMAND2 "play -q -t raw -b 16 -c 1 -e s -r 44100 -"
 #define BOTTOM 100 // cut-off freq. bottom
 #define TOP 4000   // cut-off freq. top
 
@@ -222,7 +222,7 @@ void ifft(complex double * y,
 void fft_r(complex double * x, complex double * y, long n, complex double w) {
   if (n == 1) { y[0] = x[0]; }
   else {
-    complex double W = 1.0; 
+    complex double W = 1.0;
     long i;
     for (i = 0; i < n/2; i++) {
       y[i]     =     (x[i] + x[i+n/2]); /* 偶数行 */
