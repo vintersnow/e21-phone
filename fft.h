@@ -15,6 +15,7 @@ using namespace std;
 
 struct complex_set
 {
+  pthread_mutex_t *m;
   complex<double> *x;
   complex<double> *y;
   complex<double> w;
