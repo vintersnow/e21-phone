@@ -121,12 +121,12 @@ int main(int argc, char const *argv[])
   if(ret==-1) error("can not connect");
   printf("connecttion success\n");
 
-  const char *cmd = "rec -V1 -q -t raw -b 16 -c 1 -e s -r 44100 -";
+  // const char *cmd = "rec -V1 -q -t raw -b 16 -c 1 -e s -r 44100 -";
   FILE *fp;
-  if((fp=popen(cmd,"r"))==NULL) error("popen");
-  const char *cmd_play = "play -q -t raw -b 16 -c 1 -e s -r 44100 -";
+  if((fp=popen(COMMAND,"r"))==NULL) error("popen");
+  // const char *cmd_play = "play -q -t raw -b 16 -c 1 -e s -r 44100 -";
   FILE *fp_p;
-  if((fp_p = popen(cmd_play,"w"))==NULL) error("popen play");
+  if((fp_p = popen(COMMAND2,"w"))==NULL) error("popen play");
 
   // char in_data[N],out_data[N];
   // ssize_t n;
