@@ -7,8 +7,8 @@
 
 #define FN N
 #define R 44100
-#define BOTTOM 100 // cut-off freq. bottom
-#define TOP 4000   // cut-off freq. top
+#define BOTTOM 20 // cut-off freq. bottom
+#define TOP 5000   // cut-off freq. top
 #define BUFFER_SIZE (TOP - BOTTOM) * FN / R * sizeof(std::complex<double>)
 
 using namespace std;

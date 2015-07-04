@@ -33,8 +33,11 @@ void* _read(void *args){
     d->len=fread(d->data,sizeof(short),N,data->fp);
     if(d->len<0) error("read");
     if(d->len == 0) break;
+    if(d->not_send)
+      printf("already read\n");
+    else
+      d->not_send = true;
 
-    d->not_send = true;
   }
   return NULL;
 }
