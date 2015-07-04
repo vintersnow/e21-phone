@@ -6,7 +6,6 @@ void Client::set_name(char *name,char *str){
 }
 
 Client::Client(Server *s, char *name,int conn,struct sockaddr_in *client_addr,socklen_t *len){
-  // printf("Constructor\n");
   this->s = s;
   this->conn = conn;
   if(name==NULL){
@@ -26,6 +25,7 @@ Client::Client(Server *s, char *name,int conn,struct sockaddr_in *client_addr,so
   pthread_create(&th_receiver,NULL,Client::lanch_receiver,this);
   // pthread_create(&th_sender,NULL,Client::lanch_sender,this);
 
+  printf("new Client %s connected\n",this->name);
 }
 
 
@@ -50,6 +50,7 @@ void Client::cl_read(){
 }
 
 void Client::cl_send(char *buf ,int len){
+  // printf("try send\n");
   if(len > 0){
     // pthread_mutex_lock(&mutex);
     if(send(conn,buf,len,0)<0) cl_stop();
@@ -66,6 +67,7 @@ void Client::cl_stop(){
   // pthread_cancel(th_sender);
   stop = true;
   close(conn);
+  printf("client %s disconnected\n",name);
 }
 
 void Client::sender(){
@@ -79,15 +81,19 @@ void Client::receiver(){
   while(1){
     memset(readbuf,'\0',N);
     // pthread_mutex_lock(&(s->mutex));
+    // printf("start recv\n");
     n = recv(conn,readbuf,N,0);
     // pthread_mutex_unlock(&(s->mutex));
+    // printf("recv %ld\n",n );
 
-    if(n<0)error("receiver error");
-    if(n==0) break;
+    // if(n<0)error("receiver error");
+    // if(n<0) break;
+    if(n<=0) break;
     s->broadcast(this,readbuf,n);
 
     // if((n=send(conn,sendbuf,n,0))<0) cl_stop();
   }
+  cl_stop();
 }
 
 

@@ -19,13 +19,17 @@ int main(int argc, char const *argv[])
     socklen_t addr_len = sizeof(struct sockaddr_in);
     int conn = accept(s->listener,(struct sockaddr *)&client_addr,&addr_len);
 
-    if(conn<0) error("client");
+    // if(conn<0) error("client");
+    if(conn<0){
+      printf("error can't connect to client \n");
+      continue;
+    }
     else{
       c = new Client(s, NULL, conn, &client_addr, &addr_len);
       s->clients[c] = true;
       // printf("connect client %s\n",c->name);
-      printf("connect client\n");
-
+      // printf("connect client\n");
+      // printf("%ld\n", s->clients.size());
 
     }
   }
