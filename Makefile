@@ -1,7 +1,7 @@
 #Makefile for client and server
 
 GCC = clang++ -Wall -pthread
-CLIENT = client.cpp common.cpp
+CLIENT = client.cpp common.cpp fft.cpp
 SERVER = server.cpp common.cpp ClientClass.cpp ServerClass.cpp
 
 cl_sv: $(CLIENT) $(SERVER)

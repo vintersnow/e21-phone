@@ -14,6 +14,7 @@ int main(int argc, char const *argv[])
   Server *s=new Server(port);
 
   Client *c;
+  int i=0;
   while(1){
     struct sockaddr_in client_addr;
     socklen_t addr_len = sizeof(struct sockaddr_in);
@@ -27,11 +28,13 @@ int main(int argc, char const *argv[])
     else{
       c = new Client(s, NULL, conn, &client_addr, &addr_len);
       s->clients[c] = true;
+      i++;
       // printf("connect client %s\n",c->name);
       // printf("connect client\n");
       // printf("%ld\n", s->clients.size());
 
     }
+    if(i>3) break;
   }
 
   s->free_clients();

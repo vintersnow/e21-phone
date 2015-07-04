@@ -47,7 +47,7 @@ void Server::broadcast(Client *c_o,char *buf,int len){
       c->sendlen = len;
 
       // c->cl_send(buf,len);
-      pthread_create(&pt[i++],NULL,Client::lanch_send,c);
+      pthread_create(&pt[i++],NULL,Client::lanch_sender,c);
     }
   }
 
@@ -58,6 +58,7 @@ void Server::broadcast(Client *c_o,char *buf,int len){
   delete(pt);
   // printf("end broadcast\n");
 }
+
 
 void Server::free_clients(){
   std::map<Client*,bool>::iterator it = clients.begin();

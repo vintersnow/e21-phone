@@ -3,6 +3,7 @@
 #include "common.h"
 #include "connect.h"
 #include "pthread.h"
+#include "fft.h"
 // #include "ClientServerClass.h"
 
 #define ClientServerClass20150702
@@ -21,10 +22,6 @@ private:
     static_cast<Client*>(p)->receiver();
     pthread_exit(NULL);
   };
-  static void* lanch_sender(void *p){
-    static_cast<Client*>(p)->sender();
-    pthread_exit(NULL);
-  };
 
 
 public:
@@ -34,15 +31,15 @@ public:
   // char sendbuf[N];
   char *sendbuf;
   int sendlen;
-  char readbuf[N];
+  char readbuf[BUFFER_SIZE];
   struct sockaddr_in addr;
   socklen_t addr_len;
   Server *s;
 
 
-  static void* lanch_send(void *p){
+  static void* lanch_sender(void *p){
     Client *c = (Client*)(p);
-    c->cl_send(c->sendbuf,c->sendlen);
+    c->sender(c->sendbuf,c->sendlen);
     pthread_exit(NULL);
   }
 
@@ -54,7 +51,7 @@ public:
   void cl_read();
   void cl_stop();
   void set_name(char *,char *);
-  void sender();
+  void sender(char *buf ,int len);
   void receiver();
   void run();
 };
