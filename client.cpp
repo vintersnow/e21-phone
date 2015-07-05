@@ -2,7 +2,12 @@
 #include "connect.h"
 #include "pthread.h"
 #include "fft.h"
+#include <sys/ioctl.h>
+#include <termios.h>
+#include <unistd.h>
 
+#define REC_CMD "rec -q -V1 -t raw -b 16 -c 1 -e s -r 44100 -"
+#define HLD_CMD "cat neo_nyan.raw"
 
 using namespace std;
 
@@ -20,7 +25,56 @@ struct conn_set{
   Data data[2];
 };
 
+struct termio tty_backup;
+struct termio tty_change;
+
 pthread_mutex_t send_mutex;
+
+int getcom(int *flag, FILE **fp_hld, FILE **data) {
+  char in_char = 0;
+  char read_byte = 0;
+
+  read_byte = read(0, &in_char, 1);
+  switch(read_byte) {
+  case -1:
+    ioctl(0, TCSETAF, &tty_backup);
+    return -1;
+  case 0:
+    fflush(NULL);
+    return 0;
+  default:
+    switch(in_char) {
+    case 'h':
+      *flag = 1;
+      printf("talker: on hold...\n");
+      if(!(*fp_hld = popen(HLD_CMD, "r"))) {
+	error("hold command");
+      }
+      break;
+    case 'q':
+      ioctl(0, TCSETAF, &tty_backup);
+      fflush(NULL);
+      printf("see you again!\n");
+      *flag = 2;
+      pclose(*data);
+      printf("shutdown\n");
+      exit(0);
+      break;
+    case 'r':
+      if (*flag == 1) {
+	pclose(*fp_hld);
+	printf("talker: returned\n");
+      }
+      *flag = 0;
+      break;
+    default:
+      printf("warning: %c is not defined\n", in_char);
+      break;
+    }
+    break;
+  }
+  return 0;
+}
 
 void* _read(void *args){
   printf("read\n");
@@ -91,20 +145,45 @@ void* my_send(void *args){
   complex<double> *X = new complex<double>[FN];
   complex<double> *Y = new complex<double>[FN];
   const long cut = BOTTOM*FN/R+1;
+
+  /*suga*/
+  short blank[N];
+  int flag = 0;
+  FILE *fp_hld;
+
 // int fp;
   // if((fp=open("./test_cl",O_WRONLY,O_CREAT))<0) error("open");
   ssize_t n;
   while(1){
+    if (getcom(&flag, &fp_hld, &(data->fp)) == -1) error("getcom");
+    if (flag == 2) break;
     memset(in_data,0,sizeof(short) * N);
-    n = fread(in_data,sizeof(short),N,data->fp);
+    memset(blank,'\0',N);
+    if (flag == 0) n = fread(in_data,sizeof(short),N, data->fp);
+    else {
+      n = fread(in_data,sizeof(short),N, fp_hld);
+      fread(blank,sizeof(short),N, data->fp);
+    }    
+    //    n = fread(in_data,sizeof(short),N,data->fp);
     // printf("%ld\n",n);
     if(n<0) error("read in_data error");
-    if(n==0) break;
+    if(n==0) {//break;
+      if (flag == 0) {
+	printf("no input data\n");
+	break;
+      }
+      else {
+	pclose(fp_hld);
+	if(!(fp_hld = popen(HLD_CMD, "r"))) {
+	  printf("popen failed\n");
+	  break;
+	}
+      }
+    }
     sample_to_complex(in_data,X,FN);
     fft(X,Y,FN);
     if((n=send(data->conn,Y+cut,BUFFER_SIZE,0))<0) error("send error");
     // if(send_all(data->conn,in_data,N)<0) error("send error");
-
   }
   return NULL;
 }
@@ -140,11 +219,57 @@ int make_conn(char *ip,int port){
 
 }
 
+void cls(void) {
+  printf("\033[2J");
+  printf("\033[0;0H");
+  return;
+}
+
+void CL_setting(void) {
+  ioctl(0, TCGETA, &tty_backup);
+  tty_change = tty_backup;
+  tty_change.c_lflag &= ~(ECHO | ICANON);
+  tty_change.c_cc[VMIN] = 0;
+  tty_change.c_cc[VTIME] = 0;
+  ioctl(0, TCSETAF, &tty_change);
+  return;
+}
+
+int select_server(const char **ip, const char **port, int n_serv) {
+  int i, n;
+  char c[3];
+
+  printf("Welcome to Nyan Cat Phone!!\n-----------------------------------\nPlease select a server:\n");
+  for (i = 1; i <= n_serv; i++) {
+    printf("No.%d  ip: %s port: %s\n", i, ip[i-1], port[i-1]);
+  }
+  do {
+    n = 0;
+    scanf("%s", c);
+    n = atoi(c);
+    if ((n < 1) || (n > n_serv)) printf("please select a valid number!\n");
+  }
+  while ((n < 1) || (n > n_serv));
+  printf("-----------------------------------\n");
+  return n;
+}
+
 int main(int argc, char const *argv[])
 {
-  if(argc!=3) error("wrong parameter");
+  /*suga*/
+  int sel_serv;
+  const char *ip_addr[] = {"127.0.0.1", "127.0.0.1"};
+  const char *sel_port[] = {"50000", "50001"};
+
+  cls();
+  sel_serv = select_server(ip_addr, sel_port, (int)(sizeof(ip_addr)/sizeof(*ip_addr)));
+  CL_setting();
+  const char * ip = ip_addr[sel_serv-1];
+  int port = atoi(sel_port[sel_serv-1]);
+
+  /*if(argc!=3) error("wrong parameter");
   const char * ip = argv[1];
-  int port = atoi(argv[2]);
+  int port = atoi(argv[2]);*/
   printf("ip:%s port:%d\n",ip,port);
 
   int serv = socket(PF_INET,SOCK_STREAM,0);
@@ -200,7 +325,9 @@ int main(int argc, char const *argv[])
   for (int i = 0; i < 2; ++i)
   {
     pthread_join(th[i],NULL);
+    printf("%d\n", i);
   }
+
   shutdown(serv,SHUT_WR);
   pclose(fp);
 
