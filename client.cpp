@@ -58,7 +58,7 @@ void* _send(void *args){
     index = data->index;
     d = &(data->data[index]);
     if(d->not_send){
-      printf("send\n");
+      // printf("send\n");
       sample_to_complex(d->data,X,FN);
       fft(X,Y,FN);
       if(send(data->conn,Y+cut,BUFFER_SIZE,0)<0) error("send error");
@@ -75,37 +75,37 @@ void* _send(void *args){
 }
 
 void* my_send(void *args){
-  // conn_set * data = (conn_set *)args;
-  // short in_data[N];
-  // short out_data[N];
-  pthread_mutex_init(&send_mutex, NULL);
-  pthread_t th[2];
-  pthread_create(&th[0],NULL,_read,args);
-  pthread_create(&th[1],NULL,_send,args);
-  for (int i = 0; i < 2; ++i)
-  {
-    pthread_join(th[i],NULL);
-  }
-  pthread_mutex_destroy(&send_mutex);
+  conn_set * data = (conn_set *)args;
+  short in_data[N];
+  short out_data[N];
+  // pthread_mutex_init(&send_mutex, NULL);
+  // pthread_t th[2];
+  // pthread_create(&th[0],NULL,_read,args);
+  // pthread_create(&th[1],NULL,_send,args);
+  // for (int i = 0; i < 2; ++i)
+  // {
+  //   pthread_join(th[i],NULL);
+  // }
+  // pthread_mutex_destroy(&send_mutex);
 
-  // complex<double> *X = new complex<double>[FN];
-  // complex<double> *Y = new complex<double>[FN];
-  // const long cut = BOTTOM*FN/R+1;
+  complex<double> *X = new complex<double>[FN];
+  complex<double> *Y = new complex<double>[FN];
+  const long cut = BOTTOM*FN/R+1;
 // int fp;
   // if((fp=open("./test_cl",O_WRONLY,O_CREAT))<0) error("open");
-  // ssize_t n;
-  // while(1){
-  //   memset(in_data,0,sizeof(short) * N);
-  //   n = fread(in_data,sizeof(short),N,data->fp);
-  //   // printf("%ld\n",n);
-  //   if(n<0) error("read in_data error");
-  //   if(n==0) break;
-  //   sample_to_complex(in_data,X,FN);
-  //   fft(X,Y,FN);
-  //   if((n=send(data->conn,Y+cut,BUFFER_SIZE,0))<0) error("send error");
-  //   // if(send_all(data->conn,in_data,N)<0) error("send error");
+  ssize_t n;
+  while(1){
+    memset(in_data,0,sizeof(short) * N);
+    n = fread(in_data,sizeof(short),N,data->fp);
+    // printf("%ld\n",n);
+    if(n<0) error("read in_data error");
+    if(n==0) break;
+    sample_to_complex(in_data,X,FN);
+    fft(X,Y,FN);
+    if((n=send(data->conn,Y+cut,BUFFER_SIZE,0))<0) error("send error");
+    // if(send_all(data->conn,in_data,N)<0) error("send error");
 
-  // }
+  }
   return NULL;
 }
 
@@ -124,7 +124,7 @@ void* my_recv(void*args){
     // printf("start recv\n");
     // n = recv(data->conn,out_data,N,0);
     n=recv(data->conn,Y+cut,BUFFER_SIZE,0);
-    printf("recv\n");
+    // printf("recv\n");
     // n = recv_all(data->conn,out_data,N);
     if(n<0) error("recv out_data error");
     if(n==0) break;
