@@ -5,31 +5,34 @@ void Client::set_name(char *name,char *str){
   strncpy(name,str,MAX_NAME_LEN-1);
 }
 
-Client::Client(Server *s, char *name,int conn,struct sockaddr_in *client_addr,socklen_t *len){
-  this->s = s;
-  this->conn = conn;
-  if(name==NULL){
-    char ss[MAX_NAME_LEN*10];
-    char num[10];
-    sprintf(num,"%d",conn);
-    strcpy(ss,"U.N.Owen");
-    strcat(ss,num);
+// Client::Client(Server *s, char *name,int conn,struct sockaddr_in *client_addr,socklen_t *len){
+//   this->s = s;
+//   this->conn = conn;
+//   if(name==NULL){
+//     char ss[MAX_NAME_LEN*10];
+//     char num[10];
+//     sprintf(num,"%d",conn);
+//     strcpy(ss,"U.N.Owen");
+//     strcat(ss,num);
 
-    set_name(this->name,ss);
-  }
+//     set_name(this->name,ss);
+//   }
+//   this->stop = false;
+//   this->def_addr = *client_addr;
+//   this->def_addr_len = *len;
+
+//   pthread_mutex_init(&mutex, NULL);
+//   pthread_create(&th_receiver,NULL,Client::lanch_receiver,this);
+
+//   printf("new Client %s connected\n",this->name);
+// }
+
+Client::Client(Server *s,int port,struct sockaddr_in *client_addr,socklen_t *len){
+  this->s = s;
   this->stop = false;
-  this->addr = *client_addr;
-  this->addr_len = *len;
+  this->def_addr = *client_addr;
+  this->def_addr_len = *len;
 
-  pthread_mutex_init(&mutex, NULL);
-  pthread_create(&th_receiver,NULL,Client::lanch_receiver,this);
-
-  printf("new Client %s connected\n",this->name);
-}
-
-
-Client::Client(Server *s){
-  this->s = s;
   listener = socket(PF_INET,SOCK_STREAM,0);
   if(listener==-1) error("socket");
 
@@ -39,7 +42,24 @@ Client::Client(Server *s){
   if(bind(listener,(struct sockaddr *)&addr,sizeof(addr))<0) error("bind error");
 
   if(listen(listener,5)<0) error("linten error");
+
   printf("new Client %s connected\n",this->name);
+}
+
+void Client::start(char *name,int conn,struct sockaddr_in *client_addr,socklen_t *len){
+    this->conn = conn;
+  if(name==NULL){
+    char ss[MAX_NAME_LEN*10];
+    char num[10];
+    sprintf(num,"%d",conn);
+    strcpy(ss,"U.N.Owen");
+    strcat(ss,num);
+
+    set_name(this->name,ss);
+  }
+   pthread_mutex_init(&mutex, NULL);
+   pthread_create(&th_receiver,NULL,Client::lanch_receiver,this);
+
 }
 
 Client::~Client(){

@@ -3,4 +3,10 @@
 #define COMMAND "rec -q -t raw -b 16 -c 1 -e s -r 44100 -"
 #define COMMAND2 "play -q -t raw -b 16 -c 1 -e s -r 44100 -"
 // #define N 10000
+
+////for debug
+#include "chrono"
+#include "iostream"
+
+
 #endif

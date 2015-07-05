@@ -32,9 +32,13 @@ public:
   char *sendbuf;
   int sendlen;
   char readbuf[BUFFER_SIZE];
+  struct sockaddr_in def_addr;
+  socklen_t def_addr_len;
   struct sockaddr_in addr;
   socklen_t addr_len;
   Server *s;
+  int listener;
+  // struct sockaddr_in addr;
 
 
   static void* lanch_sender(void *p){
@@ -44,9 +48,10 @@ public:
   }
 
   Client(Server *s,char *name,int conn,struct sockaddr_in *client_addr,socklen_t *len);
-  Client(Server *s);
+  Client(Server *s,int port,struct sockaddr_in *client_addr,socklen_t *len);
   Client();
   ~Client();
+  void start(char *name,int conn,struct sockaddr_in *client_addr,socklen_t *len);
   void cl_send(char *buf ,int len);
   void cl_send();
   void cl_read();

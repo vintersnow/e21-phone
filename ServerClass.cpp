@@ -1,6 +1,4 @@
 #include "ClientServerClass.h"
-#include "iostream"
-#include "chrono"
 
 Server::Server(int port){
   listener = socket(PF_INET,SOCK_STREAM,0);

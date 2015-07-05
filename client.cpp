@@ -158,22 +158,22 @@ int main(int argc, char const *argv[])
   if(ret==-1) error("can not connect");
   printf("connecttion success\n");
 
-  // conn_set def_conn;
+  conn_set def_conn;
 
-  // char _port[N];
-  // int conn_port;
-  // memset(_port,'\0',N);
-  // while(1){
-  //   int n = recv(serv,_port,N,0);
-  //   if(n<0) error("send");
-  //   if(n==0){
-  //     printf("can't recvie from server\n");
-  //     continue;
-  //   }else{
-  //     conn_port = atoi(_port);
-  //     break;
-  //   }
-  // }
+  char _port[N];
+  int conn_port;
+  memset(_port,'\0',N);
+  while(1){
+    int n = recv(serv,_port,N,0);
+    if(n<0) error("send");
+    if(n==0){
+      printf("can't recvie from server\n");
+      continue;
+    }else{
+      conn_port = atoi(_port);
+      break;
+    }
+  }
 
 
   FILE *fp;

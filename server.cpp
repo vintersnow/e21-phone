@@ -28,9 +28,10 @@ int main(int argc, char const *argv[])
       continue;
     }
     else{
-      
-      // send(def_conn,&cl_port,sizeof(int),0);
-      c = new Client(s, NULL, def_conn, &client_addr, &addr_len);
+
+      send(def_conn,&cl_port,sizeof(int),0);
+      // c = new Client(s, NULL, def_conn, &client_addr, &addr_len);
+      c = new Client(s,cl_port);
       s->clients[c] = true;
       i++;
       // printf("connect client %s\n",c->name);
