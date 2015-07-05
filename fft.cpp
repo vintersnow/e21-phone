@@ -92,21 +92,34 @@ void send_recv(int s) {
   // complex<double> * get_data = new complex<double>[FN];
   complex<double> * X = new complex<double>[FN];
   complex<double> * Y = new complex<double>[FN];
+  complex<double> * Z = new complex<double>[FN];
   int cut = BOTTOM*FN/R+1;
+  printf("start send_recv\n");
   while (1) {
     m = fread(in_data, sizeof(short), N, p_file);
     if (m == 0) break;
     sample_to_complex(in_data, X, FN);
+    sample_to_complex(in_data,Z,FN);
+    multi_winfunc(X);
+    // i_winfunc(X);
+    // for (int i = 0; i < FN; ++i)
+    // {
+    //   printf("diff:%f\n",real(X[i])-real(Z[i]));
+    // }
+    // exit(1);
     // printf("start fft\n");
     fft(X, Y, FN);
     // printf("fin fft\n");
     // cut_data(Y, send_data);
     // printf("%f\n", (double)sizeof(complex<double>)*n_data/N);
-    send(s, Y+cut, BUFFER_SIZE,0);
+    // send(s, Y+cut, BUFFER_SIZE,0);
+    send(s, Y,FN*sizeof(complex<double>) ,0);
 
-    n = recv(s, Y+cut, BUFFER_SIZE,0);
+    // n = recv(s, Y+cut, BUFFER_SIZE,0);
+    n = recv(s,Y,FN*sizeof(complex<double>),0);
     // zero_data(send_data, Y);
     ifft(Y, X, FN);
+    i_winfunc(X);
     complex_to_sample(X, out_data, FN);
     fwrite(out_data, sizeof(short), N, p_file2);
   }
@@ -188,10 +201,11 @@ void fft(complex<double> * x, complex<double> * y, long n) {
   pthread_mutex_destroy(&mutex);
 
   for (i = 0; i < n; i++) {
-    if ((i*R/n < BOTTOM) || (i*R/n > TOP)) {
-      y[i] = 0;  //filter
-    }
-    else y[i] /= n;
+    // if ((i*R/n < BOTTOM) || (i*R/n > TOP)) {
+    //   y[i] = 0;  //filter
+    // }
+    // else y[i] /= n;
+    y[i] /= n;
   }
 }
 
@@ -273,6 +287,26 @@ void fft_r(complex<double> * x, complex<double> * y, long n, complex<double> w) 
       y[2*i]   = x[i];
       y[2*i+1] = x[i+n/2];
     }
+  }
+}
+
+double window_func(int n){
+  return 0.5-0.5*cos(2*M_PI*n/N);
+}
+
+void multi_winfunc(complex<double> *data){
+  for (int i = 0; i < FN; ++i)
+  {
+    // printf("%f*%f\n", real(data[i]),window_func(i));
+    data[i] *= window_func(i);
+  }
+  // exit(1);
+}
+
+void i_winfunc(complex<double> *data){
+  for (int i = 0; i < FN; ++i)
+  {
+    data[i] /= window_func(i);
   }
 }
 

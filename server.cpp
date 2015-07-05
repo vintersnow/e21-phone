@@ -28,7 +28,6 @@ int main(int argc, char const *argv[])
       continue;
     }
     else{
-      
       // send(def_conn,&cl_port,sizeof(int),0);
       c = new Client(s, NULL, def_conn, &client_addr, &addr_len);
       s->clients[c] = true;

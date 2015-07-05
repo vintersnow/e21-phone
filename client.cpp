@@ -75,37 +75,37 @@ void* _send(void *args){
 }
 
 void* my_send(void *args){
-  // conn_set * data = (conn_set *)args;
-  // short in_data[N];
+  conn_set * data = (conn_set *)args;
+  short in_data[N];
   // short out_data[N];
-  pthread_mutex_init(&send_mutex, NULL);
-  pthread_t th[2];
-  pthread_create(&th[0],NULL,_read,args);
-  pthread_create(&th[1],NULL,_send,args);
-  for (int i = 0; i < 2; ++i)
-  {
-    pthread_join(th[i],NULL);
-  }
-  pthread_mutex_destroy(&send_mutex);
+  // pthread_mutex_init(&send_mutex, NULL);
+  // pthread_t th[2];
+  // pthread_create(&th[0],NULL,_read,args);
+  // pthread_create(&th[1],NULL,_send,args);
+  // for (int i = 0; i < 2; ++i)
+  // {
+  //   pthread_join(th[i],NULL);
+  // }
+  // pthread_mutex_destroy(&send_mutex);
 
-  // complex<double> *X = new complex<double>[FN];
-  // complex<double> *Y = new complex<double>[FN];
-  // const long cut = BOTTOM*FN/R+1;
+  complex<double> *X = new complex<double>[FN];
+  complex<double> *Y = new complex<double>[FN];
+  const long cut = BOTTOM*FN/R+1;
 // int fp;
   // if((fp=open("./test_cl",O_WRONLY,O_CREAT))<0) error("open");
-  // ssize_t n;
-  // while(1){
-  //   memset(in_data,0,sizeof(short) * N);
-  //   n = fread(in_data,sizeof(short),N,data->fp);
-  //   // printf("%ld\n",n);
-  //   if(n<0) error("read in_data error");
-  //   if(n==0) break;
-  //   sample_to_complex(in_data,X,FN);
-  //   fft(X,Y,FN);
-  //   if((n=send(data->conn,Y+cut,BUFFER_SIZE,0))<0) error("send error");
-  //   // if(send_all(data->conn,in_data,N)<0) error("send error");
+  ssize_t n;
+  while(1){
+    memset(in_data,0,sizeof(short) * N);
+    n = fread(in_data,sizeof(short),N,data->fp);
+    // printf("%ld\n",n);
+    if(n<0) error("read in_data error");
+    if(n==0) break;
+    sample_to_complex(in_data,X,FN);
+    fft(X,Y,FN);
+    if((n=send(data->conn,Y+cut,BUFFER_SIZE,0))<0) error("send error");
+    // if(send_all(data->conn,in_data,N)<0) error("send error");
 
-  // }
+  }
   return NULL;
 }
 
@@ -136,8 +136,17 @@ void* my_recv(void*args){
 }
 
 
-int make_conn(char *ip,int port){
+int make_conn(const char *ip,int port,struct sockaddr_in *addr){
+  int serv = socket(PF_INET,SOCK_STREAM,0);
+  if(serv==-1) error("socket");
 
+  addr->sin_family = AF_INET;
+  if(inet_aton(ip,&(addr->sin_addr))==0) error("error with ip");
+  addr->sin_port = htons(port);
+  int ret = connect(serv,(struct sockaddr *)addr,sizeof(*addr));
+  if(ret==-1) error("can not connect");
+  printf("connecttion success with port %d\n",port);
+  return serv;
 }
 
 int main(int argc, char const *argv[])
@@ -147,34 +156,46 @@ int main(int argc, char const *argv[])
   int port = atoi(argv[2]);
   printf("ip:%s port:%d\n",ip,port);
 
-  int serv = socket(PF_INET,SOCK_STREAM,0);
-  if(serv==-1) error("socket");
+  // int _serv = socket(PF_INET,SOCK_STREAM,0);
+  // if(_serv==-1) error("socket");
 
   struct sockaddr_in addr;
-  addr.sin_family = AF_INET;
-  if(inet_aton(ip,&addr.sin_addr)==0) error("error with ip");
-  addr.sin_port = htons(port);
-  int ret = connect(serv,(struct sockaddr *)&addr,sizeof(addr));
-  if(ret==-1) error("can not connect");
-  printf("connecttion success\n");
+  // addr.sin_family = AF_INET;
+  // if(inet_aton(ip,&addr.sin_addr)==0) error("error with ip");
+  // addr.sin_port = htons(port);
+  // int ret = connect(_serv,(struct sockaddr *)&addr,sizeof(addr));
+  // if(ret==-1) error("can not connect");
+  int _serv = make_conn(ip,port,&addr);
+  // printf("connecttion success\n");
 
-  // conn_set def_conn;
+  conn_set def_conn;
 
-  // char _port[N];
-  // int conn_port;
-  // memset(_port,'\0',N);
-  // while(1){
-  //   int n = recv(serv,_port,N,0);
-  //   if(n<0) error("send");
-  //   if(n==0){
-  //     printf("can't recvie from server\n");
-  //     continue;
-  //   }else{
-  //     conn_port = atoi(_port);
-  //     break;
-  //   }
-  // }
+  char _port[N];
+  int conn_port;
+  memset(_port,'\0',N);
+  while(1){
+    int n = recv(_serv,_port,N,0);
+    if(n<0) error("send");
+    if(n==0){
+      printf("can't recvie from server\n");
+      continue;
+    }else{
+      conn_port = atoi(_port);
+      printf("%d\n", conn_port);
+      break;
+    }
+  }
+  // int serv = socket(PF_INET,SOCK_STREAM,0);
+  // if(serv==-1) error("socket");
 
+  // addr.sin_family = AF_INET;
+  // if(inet_aton(ip,&addr.sin_addr)==0) error("error with ip");
+  // addr.sin_port = htons(conn_port);
+  // ret = connect(serv,(struct sockaddr *)&addr,sizeof(addr));
+  // if(ret==-1) error("can not connect");
+  // printf("connecttion success with port %d\n",conn_port);
+  struct sockaddr_in addr_cl;
+  int serv = make_conn(ip,conn_port,&addr_cl);
 
   FILE *fp;
   if((fp=popen(COMMAND,"r"))==NULL) error("popen");
