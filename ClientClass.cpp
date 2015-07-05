@@ -27,9 +27,10 @@ void Client::set_name(char *name,char *str){
 //   printf("new Client %s connected\n",this->name);
 // }
 
-Client::Client(Server *s,int port,struct sockaddr_in *client_addr,socklen_t *len){
+Client::Client(Server *s,int def_conn,int port,struct sockaddr_in *client_addr,socklen_t *len){
   this->s = s;
   this->stop = false;
+  this->def_conn = def_conn;
   this->def_addr = *client_addr;
   this->def_addr_len = *len;
 
@@ -47,7 +48,7 @@ Client::Client(Server *s,int port,struct sockaddr_in *client_addr,socklen_t *len
 }
 
 void Client::start(char *name,int conn,struct sockaddr_in *client_addr,socklen_t *len){
-    this->conn = conn;
+  this->conn = conn;
   if(name==NULL){
     char ss[MAX_NAME_LEN*10];
     char num[10];
@@ -72,6 +73,7 @@ Client::~Client(){
   pthread_mutex_destroy(&mutex);
 
   close(conn);
+  close(def_conn);
 }
 
 void Client::cl_read(){

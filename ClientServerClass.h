@@ -26,6 +26,7 @@ private:
 
 public:
   char name[MAX_NAME_LEN];
+  int def_conn;
   int conn;
   bool stop;
   // char sendbuf[N];
@@ -48,7 +49,7 @@ public:
   }
 
   Client(Server *s,char *name,int conn,struct sockaddr_in *client_addr,socklen_t *len);
-  Client(Server *s,int port,struct sockaddr_in *client_addr,socklen_t *len);
+  Client(Server *s,int ,int port,struct sockaddr_in *client_addr,socklen_t *len);
   Client();
   ~Client();
   void start(char *name,int conn,struct sockaddr_in *client_addr,socklen_t *len);
