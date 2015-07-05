@@ -33,10 +33,13 @@ void* _read(void *args){
     d->len=fread(d->data,sizeof(short),N,data->fp);
     if(d->len<0) error("read");
     if(d->len == 0) break;
-    if(d->not_send)
-      printf("already read\n");
-    else
-      d->not_send = true;
+    // if(d->not_send)
+      // printf("already read\n");
+    // else
+      // printf("now read\n");
+    pthread_mutex_lock(&send_mutex);
+    d->not_send = true;
+    pthread_mutex_unlock(&send_mutex);
 
   }
   return NULL;
@@ -55,14 +58,16 @@ void* _send(void *args){
     index = data->index;
     d = &(data->data[index]);
     if(d->not_send){
+      printf("send\n");
       sample_to_complex(d->data,X,FN);
       fft(X,Y,FN);
       if(send(data->conn,Y+cut,BUFFER_SIZE,0)<0) error("send error");
       d->not_send = false;
-    }else{
       pthread_mutex_lock(&send_mutex);
       data->index = (index+1)%2;
       pthread_mutex_unlock(&send_mutex);
+    }else{
+      // printf("next\n");
     }
   }
   free(X);free(Y);
@@ -119,6 +124,7 @@ void* my_recv(void*args){
     // printf("start recv\n");
     // n = recv(data->conn,out_data,N,0);
     n=recv(data->conn,Y+cut,BUFFER_SIZE,0);
+    printf("recv\n");
     // n = recv_all(data->conn,out_data,N);
     if(n<0) error("recv out_data error");
     if(n==0) break;
@@ -161,7 +167,7 @@ int main(int argc, char const *argv[])
   data[0].fp = fp_p;
   data[1].fp = fp;
 
-  data[1].data[0].not_send = false;
+  data[1].data[0].not_send = true;
   data[1].data[1].not_send = false;
   data[1].index = 0;
 

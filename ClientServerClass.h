@@ -58,7 +58,15 @@ public:
 
 class Server
 {
+private:
    struct sockaddr_in addr;
+   static void* lanch_free_thread(void *args){
+    ((Server *)args)->free_thread();
+    pthread_exit(NULL);
+   };
+  pthread_t ft;
+   void free_thread();
+   std::map<pthread_t*,int> th_m;
 public:
    pthread_mutex_t mutex;
   std::map<Client*, bool> clients;

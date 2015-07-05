@@ -1,4 +1,6 @@
 #include "ClientServerClass.h"
+#include "iostream"
+#include "chrono"
 
 Server::Server(int port){
   listener = socket(PF_INET,SOCK_STREAM,0);
@@ -12,12 +14,16 @@ Server::Server(int port){
   if(listen(listener,5)<0) error("linten error");
 
   pthread_mutex_init(&mutex, NULL);
+  pthread_create(&ft,NULL,Server::lanch_free_thread,this);
 
   printf("Server start\n");
 
 }
 
 Server::~Server(){
+  pthread_cancel(ft);
+  pthread_join(ft,NULL);
+  pthread_mutex_destroy(&mutex);
   close(listener);
   printf("Server shutdown\n");
 }
@@ -31,6 +37,7 @@ void Server::broadcast(Client *c_o,char *buf,int len){
   int i=0;
   bool live;
 
+  // const auto startTime = std::chrono::system_clock::now();
   // for(it = clients.begin(); it!=clients.end(); it++){
   while(it!=clients.end()){
     c = it->first;
@@ -46,16 +53,22 @@ void Server::broadcast(Client *c_o,char *buf,int len){
       c->sendbuf = buf;
       c->sendlen = len;
 
-      // c->cl_send(buf,len);
+      // c->sender(buf,len);
       pthread_create(&pt[i++],NULL,Client::lanch_sender,c);
     }
   }
+  // if(i==0) delete(pt);
+  // else th_m[pt] = i;
+
 
   for (int j = 0; j < i; ++j)
   {
     pthread_join(pt[j],NULL);
   }
   delete(pt);
+      // const auto endTime = std::chrono::system_clock::now();
+    // const auto timeSpan = endTime - startTime;
+    // std::cout << "処理時間:" << std::chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count() << "[ms]" << std::endl;
   // printf("end broadcast\n");
 }
 
@@ -75,4 +88,22 @@ inline void Server::free_client(Client *c){
   clients.erase(c);
   c->cl_stop();
   delete(c);
+}
+
+void Server::free_thread(){
+  std::map<pthread_t*,int>::iterator it;
+  pthread_t *pt;
+  while(1){
+    if(th_m.size()>0){
+      it = th_m.begin();
+      pt = it->first;
+      for (int i = 0; i < it->second; ++i)
+      {
+        pthread_join(pt[i],NULL);
+      }
+      th_m.erase(it);
+      delete(pt);
+      // printf("free thread\n");
+    }
+  }
 }
