@@ -6,6 +6,148 @@ char buf[N], buf2[N];
 #define Therad_num 3 //2~5ほどがよさそう。
 using namespace std;
 
+void server(char **argv) {
+  int portnum = atoi(argv[1]);
+
+  int ss = socket(PF_INET, SOCK_STREAM, 0); //error: return -1
+  if (ss == -1) {
+    printf("making socket failed/n");
+    return;
+  }
+
+  struct sockaddr_in addr; /* bind に渡すアドレス情報 */
+  addr.sin_family = AF_INET; /* IPv4 */
+  addr.sin_port = htons(portnum); /*ポート##で待受 */
+  addr.sin_addr.s_addr = INADDR_ANY; /* どのIPアドレスでも待受 */
+  if(bind(ss, (struct sockaddr *)&addr, sizeof(addr)) == -1) { //error: return -1
+    printf("bind failed\n");
+    return;
+  }
+
+  if (listen(ss, 10) == -1) {
+    printf("listen failed\n");
+    return;
+  }
+
+  struct sockaddr_in client_addr;
+  socklen_t len = sizeof(struct sockaddr_in);
+  int s = accept(ss, (struct sockaddr *)&client_addr, &len);
+  if (s == -1) {
+    printf("accept failed\n");
+    return;
+  }
+
+  close(ss);
+
+  send_recv(s);
+
+  close(s);
+
+  return;
+}
+
+void client (char **argv) {
+
+  int s = socket(PF_INET, SOCK_STREAM, 0); //error: return -1
+  if (s == -1) {
+    printf("making socket failed/n");
+    return;
+  }
+
+  struct sockaddr_in addr;
+  addr.sin_family = AF_INET; // def IPv4
+  int aton = inet_aton(argv[1] , &addr.sin_addr);
+  if (aton == 0) {
+    printf("inet_aton\n");
+    return;
+  }
+  int portnum = atoi(argv[2]);
+  addr.sin_port = htons(portnum); //port number
+  int ret = connect (s, (struct sockaddr *)&addr, sizeof(addr)); //connect; error: return -1
+  if (ret == -1) {
+    printf("connection failed\n");
+    return;
+  }
+
+  send_recv(s);
+
+  close(s);
+  return;
+}
+
+void send_recv(int s) {
+  if(!(p_file = popen(COMMAND, "r"))) {
+    printf("popen failed\n");
+    return;
+  }
+  if(!(p_file2 = popen(COMMAND2, "w"))) {
+    printf("popen failed\n");
+    return;
+  }
+
+  int m, n;
+  short in_data[N], out_data[N];
+  // int n_data = (TOP - BOTTOM) * FN / R; //number of datas to send
+  // complex<double> * send_data = new complex<double>[FN];
+  // complex<double> * get_data = new complex<double>[FN];
+  complex<double> * X = new complex<double>[FN];
+  complex<double> * Y = new complex<double>[FN];
+  complex<double> * Z = new complex<double>[FN];
+  int cut = BOTTOM*FN/R+1;
+  printf("start send_recv\n");
+  while (1) {
+    m = fread(in_data, sizeof(short), N, p_file);
+    if (m == 0) break;
+    sample_to_complex(in_data, X, FN);
+    sample_to_complex(in_data,Z,FN);
+    multi_winfunc(X);
+    // i_winfunc(X);
+    // for (int i = 0; i < FN; ++i)
+    // {
+    //   printf("diff:%f\n",real(X[i])-real(Z[i]));
+    // }
+    // exit(1);
+    // printf("start fft\n");
+    fft(X, Y, FN);
+    // printf("fin fft\n");
+    // cut_data(Y, send_data);
+    // printf("%f\n", (double)sizeof(complex<double>)*n_data/N);
+    // send(s, Y+cut, BUFFER_SIZE,0);
+    send(s, Y,FN*sizeof(complex<double>) ,0);
+
+    // n = recv(s, Y+cut, BUFFER_SIZE,0);
+    n = recv(s,Y,FN*sizeof(complex<double>),0);
+    // zero_data(send_data, Y);
+    ifft(Y, X, FN);
+    i_winfunc(X);
+    complex_to_sample(X, out_data, FN);
+    fwrite(out_data, sizeof(short), N, p_file2);
+  }
+
+  pclose(p_file);
+  pclose(p_file2);
+
+  return;
+}
+
+void cut_data(complex<double> * in_data, complex<double> *out_data) {
+  int i;
+  for (i = 0; i < FN; i++) {
+    if ((i*R/FN < BOTTOM) || (i*R/FN > TOP)) ;
+    else out_data[i-1-BOTTOM*FN/R] = in_data[i];
+  }
+  return;
+}
+
+void zero_data(complex<double> * in_data, complex<double> *out_data) {
+  int i;
+  for (i = 0; i < FN; i++) {
+    if ((i*R/FN < BOTTOM) || (i*R/FN > TOP)) out_data[i] = 0;
+    else out_data[i] = in_data[i-1-BOTTOM * FN / R];
+  }
+  return;
+}
+
 void sample_to_complex(short * s, complex<double> * X, long n) {
   long i;
   for (i = 0; i < n; i++) X[i] = s[i];
@@ -40,10 +182,11 @@ void fft(complex<double> * x, complex<double> * y, long n) {
   pthread_mutex_destroy(&mutex);
 
   for (i = 0; i < n; i++) {
-    if ((i*R/n < BOTTOM) || (i*R/n > TOP)) {
-      y[i] = 0;  //filter
-    }
-    else y[i] /= n;
+    // if ((i*R/n < BOTTOM) || (i*R/n > TOP)) {
+    //   y[i] = 0;  //filter
+    // }
+    // else y[i] /= n;
+    y[i] /= n;
   }
 }
 
@@ -125,6 +268,26 @@ void fft_r(complex<double> * x, complex<double> * y, long n, complex<double> w) 
       y[2*i]   = x[i];
       y[2*i+1] = x[i+n/2];
     }
+  }
+}
+
+double window_func(int n){
+  return 0.5-0.5*cos(2*M_PI*n/N);
+}
+
+void multi_winfunc(complex<double> *data){
+  for (int i = 0; i < FN; ++i)
+  {
+    // printf("%f*%f\n", real(data[i]),window_func(i));
+    data[i] *= window_func(i);
+  }
+  // exit(1);
+}
+
+void i_winfunc(complex<double> *data){
+  for (int i = 0; i < FN; ++i)
+  {
+    data[i] /= window_func(i);
   }
 }
 

@@ -37,5 +37,8 @@ void cut_data(complex<double> *, complex<double> *);
 void server(char **argv);
 void client(char **argv);
 void* fft_r_th(void*);
+double window_func(int n);
+void multi_winfunc(complex<double> *data);
+void i_winfunc(complex<double> *data);
 
 #endif
