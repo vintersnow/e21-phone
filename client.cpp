@@ -67,9 +67,9 @@ int getcom(int *flag, FILE **fp_hld, FILE **data) {
     case 'q':
       #ifdef __APPLE__
       tcsetattr(0, TCSAFLUSH, &tty_backup);
-    #else
+      #else
       ioctl(0, TCSETAF, &tty_backup);
-    #endif
+      #endif
       fflush(NULL);
       printf(QUIT_MSG);
       *flag = 2;
@@ -83,8 +83,8 @@ int getcom(int *flag, FILE **fp_hld, FILE **data) {
       break;
     case 'r':
       if (*flag == 1) {
-	pclose(*fp_hld);
-	printf("talker: returned\n");
+	     pclose(*fp_hld);
+	     printf("talker: returned\n");
       }
       *flag = 0;
       break;
