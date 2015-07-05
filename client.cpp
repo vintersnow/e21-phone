@@ -8,6 +8,7 @@
 
 #define REC_CMD "rec -q -V1 -t raw -b 16 -c 1 -e s -r 44100 -"
 #define HLD_CMD "cat neo_nyan.raw"
+#define QUIT_MSG "see you again!\n"
 
 using namespace std;
 
@@ -70,7 +71,7 @@ int getcom(int *flag, FILE **fp_hld, FILE **data) {
       ioctl(0, TCSETAF, &tty_backup);
     #endif
       fflush(NULL);
-      printf("see you again!\n");
+      printf(QUIT_MSG);
       *flag = 2;
       pclose(*data);
       for (int i = 0; i < 2; ++i)
@@ -258,7 +259,7 @@ void CL_setting(void) {
 
 int select_server(const char **ip, const char **port, int n_serv) {
   int i, n;
-  char c[3];
+  char c[10];
 
   printf("Welcome to Nyan Cat Phone!!\n-----------------------------------\nPlease select a server:\n");
   for (i = 1; i <= n_serv; i++) {
@@ -267,6 +268,10 @@ int select_server(const char **ip, const char **port, int n_serv) {
   do {
     n = 0;
     scanf("%s", c);
+    if(c[0] == 'q'){
+      printf(QUIT_MSG);
+      exit(0);
+    }
     n = atoi(c);
     if ((n < 1) || (n > n_serv)) printf("please select a valid number!\n");
   }
