@@ -100,7 +100,7 @@ void send_recv(int s) {
     if (m == 0) break;
     sample_to_complex(in_data, X, FN);
     sample_to_complex(in_data,Z,FN);
-    multi_winfunc(X);
+    // multi_winfunc(X);
     // i_winfunc(X);
     // for (int i = 0; i < FN; ++i)
     // {
@@ -112,14 +112,14 @@ void send_recv(int s) {
     // printf("fin fft\n");
     // cut_data(Y, send_data);
     // printf("%f\n", (double)sizeof(complex<double>)*n_data/N);
-    // send(s, Y+cut, BUFFER_SIZE,0);
-    send(s, Y,FN*sizeof(complex<double>) ,0);
+    send(s, Y+cut, BUFFER_SIZE,0);
+    // send(s, Y,FN*sizeof(complex<double>) ,0);
 
-    // n = recv(s, Y+cut, BUFFER_SIZE,0);
-    n = recv(s,Y,FN*sizeof(complex<double>),0);
+    n = recv(s, Y+cut, BUFFER_SIZE,0);
+    // n = recv(s,Y,FN*sizeof(complex<double>),0);
     // zero_data(send_data, Y);
     ifft(Y, X, FN);
-    i_winfunc(X);
+    // i_winfunc(X);
     complex_to_sample(X, out_data, FN);
     fwrite(out_data, sizeof(short), N, p_file2);
   }
@@ -182,11 +182,11 @@ void fft(complex<double> * x, complex<double> * y, long n) {
   pthread_mutex_destroy(&mutex);
 
   for (i = 0; i < n; i++) {
-    // if ((i*R/n < BOTTOM) || (i*R/n > TOP)) {
-    //   y[i] = 0;  //filter
-    // }
-    // else y[i] /= n;
-    y[i] /= n;
+    if ((i*R/n < BOTTOM) || (i*R/n > TOP)) {
+      y[i] = 0;  //filter
+    }
+    else y[i] /= n;
+    // y[i] /= n;
   }
 }
 

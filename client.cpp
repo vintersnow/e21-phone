@@ -25,6 +25,9 @@ struct conn_set{
   Data data[2];
 };
 
+pthread_t th[2];
+conn_set data[2];
+
 #ifdef __APPLE__
 termios tty_backup;
 termios tty_change;
@@ -33,6 +36,7 @@ struct termio tty_backup;
 struct termio tty_change;
 #endif
 pthread_mutex_t send_mutex;
+
 
 int getcom(int *flag, FILE **fp_hld, FILE **data) {
   char in_char = 0;
@@ -69,6 +73,10 @@ int getcom(int *flag, FILE **fp_hld, FILE **data) {
       printf("see you again!\n");
       *flag = 2;
       pclose(*data);
+      for (int i = 0; i < 2; ++i)
+      {
+        pthread_cancel(th[i]);
+      }
       printf("shutdown\n");
       exit(0);
       break;
@@ -165,7 +173,7 @@ void* my_send(void *args){
   // if((fp=open("./test_cl",O_WRONLY,O_CREAT))<0) error("open");
   ssize_t n;
   while(1){
-    if (getcom(&flag, &fp_hld, &(data->fp)) == -1) error("getcom");
+    if ((n=getcom(&flag, &fp_hld, &(data->fp))) == -1) error("getcom");
     if (flag == 2) break;
     memset(in_data,0,sizeof(short) * N);
     memset(blank,'\0',N);
@@ -310,23 +318,23 @@ int main(int argc, char const *argv[])
   int _serv = make_conn(ip,port,&addr);
   // printf("connecttion success\n");
 
-  conn_set def_conn;
+  // conn_set def_conn;
 
-  char _port[N];
-  int conn_port;
-  memset(_port,'\0',N);
-  while(1){
-    int n = recv(_serv,_port,N,0);
-    if(n<0) error("send");
-    if(n==0){
-      printf("can't recvie from server\n");
-      continue;
-    }else{
-      conn_port = atoi(_port);
-      printf("%d\n", conn_port);
-      break;
-    }
-  }
+  // char _port[N];
+  // int conn_port;
+  // memset(_port,'\0',N);
+  // while(1){
+  //   int n = recv(_serv,_port,N,0);
+  //   if(n<0) error("send");
+  //   if(n==0){
+  //     printf("can't recvie from server\n");
+  //     continue;
+  //   }else{
+  //     conn_port = atoi(_port);
+  //     printf("%d\n", conn_port);
+  //     break;
+  //   }
+  // }
   // int serv = socket(PF_INET,SOCK_STREAM,0);
   // if(serv==-1) error("socket");
 
@@ -336,8 +344,9 @@ int main(int argc, char const *argv[])
   // ret = connect(serv,(struct sockaddr *)&addr,sizeof(addr));
   // if(ret==-1) error("can not connect");
   // printf("connecttion success with port %d\n",conn_port);
-  struct sockaddr_in addr_cl;
-  int serv = make_conn(ip,conn_port,&addr_cl);
+  // struct sockaddr_in addr_cl;
+  // int serv = make_conn(ip,conn_port,&addr_cl);
+  int serv = _serv;
 
   FILE *fp;
   if((fp=popen(COMMAND,"r"))==NULL) error("popen");
@@ -346,8 +355,6 @@ int main(int argc, char const *argv[])
 
   // char in_data[N],out_data[N];
   // ssize_t n;
-  pthread_t th[2];
-  conn_set data[2];
   data[0].conn = serv;
   data[1].conn = serv;
   data[0].fp = fp_p;
@@ -363,11 +370,12 @@ int main(int argc, char const *argv[])
   for (int i = 0; i < 2; ++i)
   {
     pthread_join(th[i],NULL);
-    printf("%d\n", i);
+    // printf("%d\n",i);
   }
 
   shutdown(serv,SHUT_WR);
   pclose(fp);
+  pclose(fp_p);
 
   printf("shutdown\n");
 
