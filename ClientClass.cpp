@@ -28,19 +28,19 @@ Client::Client(Server *s, char *name,int conn,struct sockaddr_in *client_addr,so
 }
 
 
-Client::Client(Server *s){
-  this->s = s;
-  listener = socket(PF_INET,SOCK_STREAM,0);
-  if(listener==-1) error("socket");
+// Client::Client(Server *s){
+//   this->s = s;
+//   listener = socket(PF_INET,SOCK_STREAM,0);
+//   if(listener==-1) error("socket");
 
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(port);
-  addr.sin_addr.s_addr = INADDR_ANY;
-  if(bind(listener,(struct sockaddr *)&addr,sizeof(addr))<0) error("bind error");
+//   addr.sin_family = AF_INET;
+//   addr.sin_port = htons(port);
+//   addr.sin_addr.s_addr = INADDR_ANY;
+//   if(bind(listener,(struct sockaddr *)&addr,sizeof(addr))<0) error("bind error");
 
-  if(listen(listener,5)<0) error("linten error");
-  printf("new Client %s connected\n",this->name);
-}
+//   if(listen(listener,5)<0) error("linten error");
+//   printf("new Client %s connected\n",this->name);
+// }
 
 Client::~Client(){
   pthread_cancel(th_receiver);
