@@ -25,9 +25,13 @@ struct conn_set{
   Data data[2];
 };
 
+#ifdef __APPLE__
+termios tty_backup;
+termios tty_change;
+#else
 struct termio tty_backup;
 struct termio tty_change;
-
+#endif
 pthread_mutex_t send_mutex;
 
 int getcom(int *flag, FILE **fp_hld, FILE **data) {
@@ -37,7 +41,11 @@ int getcom(int *flag, FILE **fp_hld, FILE **data) {
   read_byte = read(0, &in_char, 1);
   switch(read_byte) {
   case -1:
-    ioctl(0, TCSETAF, &tty_backup);
+    #ifdef __APPLE__
+      tcsetattr(0, TCSAFLUSH, &tty_backup);
+    #else
+      ioctl(0, TCSETAF, &tty_backup);
+    #endif
     return -1;
   case 0:
     fflush(NULL);
@@ -52,7 +60,11 @@ int getcom(int *flag, FILE **fp_hld, FILE **data) {
       }
       break;
     case 'q':
+      #ifdef __APPLE__
+      tcsetattr(0, TCSAFLUSH, &tty_backup);
+    #else
       ioctl(0, TCSETAF, &tty_backup);
+    #endif
       fflush(NULL);
       printf("see you again!\n");
       *flag = 2;
@@ -163,7 +175,7 @@ void* my_send(void *args){
     else {
       n = fread(in_data,sizeof(short),N, fp_hld);
       fread(blank,sizeof(short),N, data->fp);
-    }    
+    }
     //    n = fread(in_data,sizeof(short),N,data->fp);
     // printf("%ld\n",n);
     if(n<0) error("read in_data error");
@@ -215,9 +227,9 @@ void* my_recv(void*args){
 }
 
 
-int make_conn(char *ip,int port){
+// int make_conn(char *ip,int port){
 
-}
+// }
 
 void cls(void) {
   printf("\033[2J");
@@ -226,12 +238,20 @@ void cls(void) {
 }
 
 void CL_setting(void) {
+  #ifdef __APPLE__
+  tcgetattr(0,&tty_backup);
+  #else
   ioctl(0, TCGETA, &tty_backup);
+  #endif
   tty_change = tty_backup;
   tty_change.c_lflag &= ~(ECHO | ICANON);
   tty_change.c_cc[VMIN] = 0;
   tty_change.c_cc[VTIME] = 0;
-  ioctl(0, TCSETAF, &tty_change);
+  #ifdef __APPLE__
+    tcsetattr(0, TCSAFLUSH, &tty_change);
+  #else
+    ioctl(0, TCSETAF, &tty_change);
+  #endif
   return;
 }
 
