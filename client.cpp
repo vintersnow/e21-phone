@@ -13,7 +13,7 @@ struct Data
   long len;
 };
 
-struct data_set{
+struct conn_set{
   int conn;
   FILE *fp;
   int index;
@@ -24,7 +24,7 @@ pthread_mutex_t send_mutex;
 
 void* _read(void *args){
   printf("read\n");
-  data_set *data = (data_set *)args;
+  conn_set *data = (conn_set *)args;
   int index;
   Data *d;
   while(1){
@@ -46,7 +46,7 @@ void* _read(void *args){
 }
 
 void* _send(void *args){
-  data_set *data = (data_set *)args;
+  conn_set *data = (conn_set *)args;
   int index;
   printf("send\n");
   Data *d;
@@ -75,7 +75,7 @@ void* _send(void *args){
 }
 
 void* my_send(void *args){
-  // data_set * data = (data_set *)args;
+  // conn_set * data = (conn_set *)args;
   // short in_data[N];
   // short out_data[N];
   pthread_mutex_init(&send_mutex, NULL);
@@ -110,7 +110,7 @@ void* my_send(void *args){
 }
 
 void* my_recv(void*args){
-  data_set *data = (data_set *)args;
+  conn_set *data = (conn_set *)args;
   short out_data[N];
   ssize_t n;
   complex<double> * X = new complex<double>[FN];
@@ -135,6 +135,11 @@ void* my_recv(void*args){
   return NULL;
 }
 
+
+int make_conn(char *ip,int port){
+
+}
+
 int main(int argc, char const *argv[])
 {
   if(argc!=3) error("wrong parameter");
@@ -153,6 +158,24 @@ int main(int argc, char const *argv[])
   if(ret==-1) error("can not connect");
   printf("connecttion success\n");
 
+  // conn_set def_conn;
+
+  // char _port[N];
+  // int conn_port;
+  // memset(_port,'\0',N);
+  // while(1){
+  //   int n = recv(serv,_port,N,0);
+  //   if(n<0) error("send");
+  //   if(n==0){
+  //     printf("can't recvie from server\n");
+  //     continue;
+  //   }else{
+  //     conn_port = atoi(_port);
+  //     break;
+  //   }
+  // }
+
+
   FILE *fp;
   if((fp=popen(COMMAND,"r"))==NULL) error("popen");
   FILE *fp_p;
@@ -161,7 +184,7 @@ int main(int argc, char const *argv[])
   // char in_data[N],out_data[N];
   // ssize_t n;
   pthread_t th[2];
-  data_set data[2];
+  conn_set data[2];
   data[0].conn = serv;
   data[1].conn = serv;
   data[0].fp = fp_p;

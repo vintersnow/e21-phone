@@ -44,6 +44,7 @@ public:
   }
 
   Client(Server *s,char *name,int conn,struct sockaddr_in *client_addr,socklen_t *len);
+  Client(Server *s);
   Client();
   ~Client();
   void cl_send(char *buf ,int len);

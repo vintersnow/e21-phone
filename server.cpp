@@ -1,5 +1,7 @@
 #include "ClientServerClass.h"
 
+#define PORT_GAP 10
+
 void* run(void *args){
   return NULL;
 }
@@ -15,18 +17,20 @@ int main(int argc, char const *argv[])
 
   Client *c;
   int i=0;
+  int cl_port = port + PORT_GAP;
+  char tmp[N];
   while(1){
     struct sockaddr_in client_addr;
     socklen_t addr_len = sizeof(struct sockaddr_in);
-    int conn = accept(s->listener,(struct sockaddr *)&client_addr,&addr_len);
-
-    // if(conn<0) error("client");
-    if(conn<0){
+    int def_conn = accept(s->listener,(struct sockaddr *)&client_addr,&addr_len);
+    if(def_conn<0){
       printf("error can't connect to client \n");
       continue;
     }
     else{
-      c = new Client(s, NULL, conn, &client_addr, &addr_len);
+      
+      // send(def_conn,&cl_port,sizeof(int),0);
+      c = new Client(s, NULL, def_conn, &client_addr, &addr_len);
       s->clients[c] = true;
       i++;
       // printf("connect client %s\n",c->name);
