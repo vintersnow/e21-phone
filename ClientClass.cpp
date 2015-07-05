@@ -103,8 +103,17 @@ void Client::cl_stop(){
 void Client::sender(char *buf ,int len){
   int n;
   if(len > 0){
+    // printf("send:%d\n", def_conn);
     // pthread_mutex_lock(&mutex);
+
+    const auto startTime = std::chrono::system_clock::now();
+
     if((n=send(conn,buf,len,0))<0) cl_stop();
+    
+     const auto endTime = std::chrono::system_clock::now();
+    const auto timeSpan = endTime - startTime;
+    std::cout << "処理時間:" << std::chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count() << "[ms]" << std::endl;
+
     // pthread_mutex_unlock(&mutex);
   }
 }
@@ -115,12 +124,14 @@ void Client::receiver(){
   // printf("start receiver\n");
   ssize_t n;
   while(1){
+    // printf("read:%d\n", def_conn);
     memset(readbuf,'\0',BUFFER_SIZE);
     // pthread_mutex_lock(&(s->mutex));
     // printf("start recv\n");
 
     n = recv(conn,readbuf,BUFFER_SIZE,0);
     // n= recv(conn,Y+cut,BUFFER_SIZE,0);
+
 
     // pthread_mutex_unlock(&(s->mutex));
     // printf("recv %ld\n",n );
@@ -129,7 +140,11 @@ void Client::receiver(){
     // if(n<0)error("receiver error");
     // if(n<0) break;
     if(n<=0) break;
+    // const auto startTime = std::chrono::system_clock::now();
     s->broadcast(this,readbuf,n);
+    // const auto endTime = std::chrono::system_clock::now();
+    // const auto timeSpan = endTime - startTime;
+    // std::cout << "処理時間:" << std::chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count() << "[ms]" << std::endl;
 
     // if((n=send(conn,sendbuf,n,0))<0) cl_stop();
   }

@@ -7,6 +7,6 @@
 ////for debug
 #include "chrono"
 #include "iostream"
-
+#define __DEBUG__
 
 #endif

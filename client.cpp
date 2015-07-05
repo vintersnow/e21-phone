@@ -124,7 +124,7 @@ void* my_recv(void*args){
     // printf("start recv\n");
     // n = recv(data->conn,out_data,N,0);
     n=recv(data->conn,Y+cut,BUFFER_SIZE,0);
-    printf("recv\n");
+    printf("recv %d\n",n);
     // n = recv_all(data->conn,out_data,N);
     if(n<0) error("recv out_data error");
     if(n==0) break;
