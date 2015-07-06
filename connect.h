@@ -10,10 +10,8 @@
 // #define N 10000
 
 ////for debug
-#ifdef __APPLE__
 #include "chrono"
 #include "iostream"
-#endif
 #define __DEBUG__
 
 
