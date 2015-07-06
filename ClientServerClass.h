@@ -4,10 +4,12 @@
 #include "connect.h"
 #include "pthread.h"
 #include "fft.h"
+
 // #include "ClientServerClass.h"
 
 #define ClientServerClass20150702
 #define MAX_NAME_LEN 20
+#define SEND_BUFFER BUFFER_SIZE
 
 class Server;
 class Client;
@@ -23,7 +25,6 @@ private:
     pthread_exit(NULL);
   };
 
-
 public:
   char name[MAX_NAME_LEN];
   int def_conn;
@@ -32,7 +33,7 @@ public:
   // char sendbuf[N];
   char *sendbuf;
   int sendlen;
-  char readbuf[BUFFER_SIZE];
+  char readbuf[SEND_BUFFER];
   struct sockaddr_in def_addr;
   socklen_t def_addr_len;
   struct sockaddr_in addr;
