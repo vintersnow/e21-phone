@@ -304,8 +304,8 @@ int main(int argc, char const *argv[])
 {
   /*suga*/
   int sel_serv;
-  const char *ip_addr[] = {"127.0.0.1", "127.0.0.1"};
-  const char *sel_port[] = {"50000", "50001"};
+  const char *ip_addr[] = {"127.0.0.1", "127.0.0.1","192.168.100.139","192.168.100.119"};
+  const char *sel_port[] = {"50000", "50001","50000","50000"};
 
   cls();
   sel_serv = select_server(ip_addr, sel_port, (int)(sizeof(ip_addr)/sizeof(*ip_addr)));
@@ -330,23 +330,23 @@ int main(int argc, char const *argv[])
   int _serv = make_conn(ip,port,&addr);
   // printf("connecttion success\n");
 
-  conn_set def_conn;
+  // conn_set def_conn;
 
-  char _port[N];
-  int conn_port;
-  memset(_port,'\0',N);
-  while(1){
-    int n = recv(_serv,_port,N,0);
-    if(n<0) error("send");
-    if(n==0){
-      printf("can't recvie from server\n");
-      continue;
-    }else{
-      conn_port = atoi(_port);
-      printf("%d\n", conn_port);
-      break;
-    }
-  }
+  // char _port[N];
+  // int conn_port;
+  // memset(_port,'\0',N);
+  // while(1){
+  //   int n = recv(_serv,_port,N,0);
+  //   if(n<0) error("send");
+  //   if(n==0){
+  //     printf("can't recvie from server\n");
+  //     continue;
+  //   }else{
+  //     conn_port = atoi(_port);
+  //     printf("%d\n", conn_port);
+  //     break;
+  //   }
+  // }
 
   // int serv = socket(PF_INET,SOCK_STREAM,0);
   // if(serv==-1) error("socket");
@@ -357,8 +357,9 @@ int main(int argc, char const *argv[])
   // ret = connect(serv,(struct sockaddr *)&addr,sizeof(addr));
   // if(ret==-1) error("can not connect");
   // printf("connecttion success with port %d\n",conn_port);
-  struct sockaddr_in addr_cl;
-  int serv = make_conn(ip,conn_port,&addr_cl);
+  // struct sockaddr_in addr_cl;
+  // int serv = make_conn(ip,conn_port,&addr_cl);
+  int serv =_serv;
 
 
   FILE *fp;

@@ -49,7 +49,7 @@ public:
   }
 
   Client(Server *s,char *name,int conn,struct sockaddr_in *client_addr,socklen_t *len);
-  Client(Server *s,int ,int port,struct sockaddr_in *client_addr,socklen_t *len);
+  // Client(Server *s,int ,int port,struct sockaddr_in *client_addr,socklen_t *len);
   Client();
   ~Client();
   void start(char *name,int conn,struct sockaddr_in *client_addr,socklen_t *len);
@@ -75,7 +75,7 @@ private:
    void free_thread();
    std::map<pthread_t*,int> th_m;
 public:
-   pthread_mutex_t mutex;
+  pthread_mutex_t mutex;
   std::map<Client*, bool> clients;
   int listener;
   char *sendbuf;

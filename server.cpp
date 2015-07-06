@@ -32,19 +32,19 @@ int main(int argc, char const *argv[])
     }
     else{
 // <<<<<<< HEAD
-      printf("connection success\n");
-      memset(tmp,'\0',N);
-      // itoa(cl_port,tmp,10);
-      sprintf(tmp,"%d",cl_port);
-      c = new Client(s,def_conn,cl_port,&client_addr,&addr_len);
-      printf("send the port %d\n",cl_port);
-      send(def_conn,tmp,N,0);
-      int conn = accept(c->listener,(struct sockaddr*)&client_addr,&addr_len);
-      // c = new Client(s, NULL, def_conn, &client_addr, &addr_len);
-      c->start(NULL,conn,&client_addr,&addr_len);
+      // printf("connection success\n");
+      // memset(tmp,'\0',N);
+      // // itoa(cl_port,tmp,10);
+      // sprintf(tmp,"%d",cl_port);
+      // c = new Client(s,def_conn,cl_port,&client_addr,&addr_len);
+      // printf("send the port %d\n",cl_port);
+      // send(def_conn,tmp,N,0);
+      // int conn = accept(c->listener,(struct sockaddr*)&client_addr,&addr_len);
+      // // c = new Client(s, NULL, def_conn, &client_addr, &addr_len);
+      // c->start(NULL,conn,&client_addr,&addr_len);
 // =======
       // send(def_conn,&cl_port,sizeof(int),0);
-      // c = new Client(s, NULL, def_conn, &client_addr, &addr_len);
+      c = new Client(s, NULL, def_conn, &client_addr, &addr_len);
 // >>>>>>> master
       s->clients[c] = true;
       i++;
