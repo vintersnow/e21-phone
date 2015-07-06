@@ -157,7 +157,9 @@ void Client::receiver(){
     // if(n<0) break;
     if(n<=0) break;
     // const auto startTime = std::chrono::system_clock::now();
+    pthread_mutex_lock(&(s->mutex));
     s->broadcast(this,readbuf,n);
+    pthread_mutex_unlock(&(s->mutex));
     // const auto endTime = std::chrono::system_clock::now();
     // const auto timeSpan = endTime - startTime;
     // std::cout << "処理時間:" << std::chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count() << "[ms]" << std::endl;

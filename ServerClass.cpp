@@ -37,7 +37,7 @@ void Server::broadcast(Client *c_o,char *buf,int len){
 
   // const auto startTime = std::chrono::system_clock::now();
   // for(it = clients.begin(); it!=clients.end(); it++){
- pthread_mutex_lock(&mutex);
+ // pthread_mutex_lock(&mutex);
 
   while(it!=clients.end()){
     c = it->first;
@@ -64,7 +64,7 @@ void Server::broadcast(Client *c_o,char *buf,int len){
     pthread_join(pt[j],NULL);
   }
   delete(pt);
-  pthread_mutex_unlock(&mutex);
+  // pthread_mutex_unlock(&mutex);
       // const auto endTime = std::chrono::system_clock::now();
     // const auto timeSpan = endTime - startTime;
     // std::cout << "処理時間:" << std::chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count() << "[ms]" << std::endl;
