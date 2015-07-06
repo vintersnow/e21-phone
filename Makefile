@@ -1,6 +1,6 @@
 #Makefile for client and server
 
-GCC = clang++ -Wall -pthread
+GCC = g++ -Wall -pthread
 CLIENT = client.cpp common.cpp fft.cpp
 SERVER = server.cpp common.cpp ClientClass.cpp ServerClass.cpp
 CL_OUT = cl.out

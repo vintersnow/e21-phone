@@ -31,6 +31,7 @@ int main(int argc, char const *argv[])
       continue;
     }
     else{
+// <<<<<<< HEAD
       printf("connection success\n");
       memset(tmp,'\0',N);
       // itoa(cl_port,tmp,10);
@@ -41,6 +42,10 @@ int main(int argc, char const *argv[])
       int conn = accept(c->listener,(struct sockaddr*)&client_addr,&addr_len);
       // c = new Client(s, NULL, def_conn, &client_addr, &addr_len);
       c->start(NULL,conn,&client_addr,&addr_len);
+// =======
+      // send(def_conn,&cl_port,sizeof(int),0);
+      // c = new Client(s, NULL, def_conn, &client_addr, &addr_len);
+// >>>>>>> master
       s->clients[c] = true;
       i++;
       cl_port+=PORT_GAP;
@@ -49,7 +54,7 @@ int main(int argc, char const *argv[])
       // printf("%ld\n", s->clients.size());
 
     }
-    if(i>3) break;
+    // if(i>3) break;
   }
 
   s->free_clients();

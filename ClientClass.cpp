@@ -34,6 +34,7 @@ Client::Client(Server *s,int def_conn,int port,struct sockaddr_in *client_addr,s
   this->def_addr = *client_addr;
   this->def_addr_len = *len;
 
+// <<<<<<< HEAD
   listener = socket(PF_INET,SOCK_STREAM,0);
   if(listener==-1) error("socket");
 
@@ -46,6 +47,21 @@ Client::Client(Server *s,int def_conn,int port,struct sockaddr_in *client_addr,s
 
   printf("new Client %s connected\n",this->name);
 }
+// =======
+// Client::Client(Server *s){
+//   this->s = s;
+//   listener = socket(PF_INET,SOCK_STREAM,0);
+//   if(listener==-1) error("socket");
+
+//   addr.sin_family = AF_INET;
+//   addr.sin_port = htons(port);
+//   addr.sin_addr.s_addr = INADDR_ANY;
+//   if(bind(listener,(struct sockaddr *)&addr,sizeof(addr))<0) error("bind error");
+
+//   if(listen(listener,5)<0) error("linten error");
+//   printf("new Client %s connected\n",this->name);
+// }
+// >>>>>>> master
 
 void Client::start(char *name,int conn,struct sockaddr_in *client_addr,socklen_t *len){
   this->conn = conn;
@@ -109,7 +125,7 @@ void Client::sender(char *buf ,int len){
     const auto startTime = std::chrono::system_clock::now();
 
     if((n=send(conn,buf,len,0))<0) cl_stop();
-    
+
      const auto endTime = std::chrono::system_clock::now();
     const auto timeSpan = endTime - startTime;
     std::cout << "処理時間:" << std::chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count() << "[ms]" << std::endl;
