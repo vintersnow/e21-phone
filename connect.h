@@ -4,7 +4,7 @@
 #define N 8192
 #define COMMAND "rec -q -t raw -b 16 -c 1 -e s -r 44100 -"
 #define COMMAND2 "play -q -t raw -b 16 -c 1 -e s -r 44100 -"
-#define SEND_BUFFER BUFFER_SIZE
+// #define SEND_BUFFER BUFFER_SIZE
 // #define SEND_BUFFER N*sizeof(short)
 
 // #define N 10000

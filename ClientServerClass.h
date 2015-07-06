@@ -9,6 +9,7 @@
 
 #define ClientServerClass20150702
 #define MAX_NAME_LEN 20
+#define SEND_BUFFER BUFFER_SIZE
 
 class Server;
 class Client;

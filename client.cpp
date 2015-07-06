@@ -210,7 +210,7 @@ void* my_send(void *args){
     sample_to_complex(in_data,X,FN);
     fft(X,Y,FN);
     if((n=send(data->conn,Y+cut,BUFFER_SIZE,0))<0) error("send error");
-    if(send(data->conn,in_data,SEND_BUFFER,0)<0) error("send error");
+    // if(send(data->conn,in_data,SEND_BUFFER,0)<0) error("send error");
     // if(send_all(data->conn,in_data,N)<0) error("send error");
   }
   return NULL;
