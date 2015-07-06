@@ -122,13 +122,13 @@ void Client::sender(char *buf ,int len){
     // printf("send:%d\n", def_conn);
     // pthread_mutex_lock(&mutex);
 
-    const auto startTime = std::chrono::system_clock::now();
+    // const auto startTime = std::chrono::system_clock::now();
 
     if((n=send(conn,buf,len,0))<0) cl_stop();
 
-     const auto endTime = std::chrono::system_clock::now();
-    const auto timeSpan = endTime - startTime;
-    std::cout << "処理時間:" << std::chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count() << "[ms]" << std::endl;
+     // const auto endTime = std::chrono::system_clock::now();
+    // const auto timeSpan = endTime - startTime;
+    // std::cout << "処理時間:" << std::chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count() << "[ms]" << std::endl;
 
     // pthread_mutex_unlock(&mutex);
   }
