@@ -124,7 +124,8 @@ void Client::sender(char *buf ,int len){
 
     // const auto startTime = std::chrono::system_clock::now();
 
-    if((n=send(conn,buf,len,0))<0) cl_stop();
+    // if((n=send(conn,buf,len,0))<0) cl_stop();
+    if(send_all(conn,buf,len)<0) cl_stop();
 
      // const auto endTime = std::chrono::system_clock::now();
     // const auto timeSpan = endTime - startTime;
@@ -145,7 +146,8 @@ void Client::receiver(){
     // pthread_mutex_lock(&(s->mutex));
     // printf("start recv\n");
 
-    n = recv(conn,readbuf,BUFFER_SIZE,0);
+    // n = recv(conn,readbuf,BUFFER_SIZE,0);
+    n = recv_all(conn,readbuf,BUFFER_SIZE);
     // n= recv(conn,Y+cut,BUFFER_SIZE,0);
 
 

@@ -208,7 +208,8 @@ void* my_send(void *args){
 // >>>>>>> master
     sample_to_complex(in_data,X,FN);
     fft(X,Y,FN);
-    if((n=send(data->conn,Y+cut,BUFFER_SIZE,0))<0) error("send error");
+    // if((n=send(data->conn,Y+cut,BUFFER_SIZE,0))<0) error("send error");
+    if(send_all(data->conn,Y+cut,BUFFER_SIZE)<0) error("send");
     // if(send_all(data->conn,in_data,N)<0) error("send error");
   }
   return NULL;
@@ -228,7 +229,8 @@ void* my_recv(void*args){
     memset(Y,0,FN*sizeof(complex<double>));
     // printf("start recv\n");
     // n = recv(data->conn,out_data,N,0);
-    n=recv(data->conn,Y+cut,BUFFER_SIZE,0);
+    // n=recv(data->conn,Y+cut,BUFFER_SIZE,0);
+    n=recv_all(data->conn,Y+cut,BUFFER_SIZE);
     // printf("recv\n");
     // n = recv_all(data->conn,out_data,N);
     if(n<0) error("recv out_data error");
@@ -304,8 +306,8 @@ int main(int argc, char const *argv[])
 {
   /*suga*/
   int sel_serv;
-  const char *ip_addr[] = {"127.0.0.1", "127.0.0.1","192.168.100.139","192.168.100.119"};
-  const char *sel_port[] = {"50000", "50001","50000","50000"};
+  const char *ip_addr[] = {"127.0.0.1", "127.0.0.1","192.168.100.139","192.168.100.119","157.82.5.98","157.82.5.93"};
+  const char *sel_port[] = {"50000", "50001","50000","50000","50000","50000"};
 
   cls();
   sel_serv = select_server(ip_addr, sel_port, (int)(sizeof(ip_addr)/sizeof(*ip_addr)));
