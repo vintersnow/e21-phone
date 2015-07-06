@@ -24,7 +24,6 @@ private:
     pthread_exit(NULL);
   };
 
-
 public:
   char name[MAX_NAME_LEN];
   int def_conn;
