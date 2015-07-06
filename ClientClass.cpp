@@ -96,8 +96,8 @@ void Client::cl_read(){
   // int n;
   // memset(c->sendbuf,'\0',N);
   // char buf[N];
-  // memset(readbuf,'\0',BUFFER_SIZE);
-  recv_all(conn,readbuf,BUFFER_SIZE);
+  // memset(readbuf,'\0',SEND_BUFFER);
+  recv_all(conn,readbuf,SEND_BUFFER);
 }
 
 void Client::cl_send(char *buf ,int len){
@@ -141,12 +141,12 @@ void Client::receiver(){
   ssize_t n;
   while(1){
     // printf("read:%d\n", def_conn);
-    memset(readbuf,'\0',BUFFER_SIZE);
+    memset(readbuf,'\0',SEND_BUFFER);
     // pthread_mutex_lock(&(s->mutex));
     // printf("start recv\n");
 
-    n = recv(conn,readbuf,BUFFER_SIZE,0);
-    // n= recv(conn,Y+cut,BUFFER_SIZE,0);
+    n = recv(conn,readbuf,SEND_BUFFER,0);
+    // n= recv(conn,Y+cut,SEND_BUFFER,0);
 
 
     // pthread_mutex_unlock(&(s->mutex));

@@ -4,6 +4,7 @@
 #include "connect.h"
 #include "pthread.h"
 #include "fft.h"
+
 // #include "ClientServerClass.h"
 
 #define ClientServerClass20150702
@@ -32,7 +33,7 @@ public:
   // char sendbuf[N];
   char *sendbuf;
   int sendlen;
-  char readbuf[BUFFER_SIZE];
+  char readbuf[SEND_BUFFER];
   struct sockaddr_in def_addr;
   socklen_t def_addr_len;
   struct sockaddr_in addr;
