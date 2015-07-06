@@ -174,6 +174,12 @@ void* my_send(void *args){
   // if((fp=open("./test_cl",O_WRONLY,O_CREAT))<0) error("open");
   ssize_t n;
   while(1){
+//     memset(in_data,0,sizeof(short) * N);
+//     n = fread(in_data,sizeof(short),N,data->fp);
+//     // printf("%ld\n",n);
+//     if(n<0) error("read in_data error");
+//     if(n==0) break;
+// =======
     if ((n=getcom(&flag, &fp_hld, &(data->fp))) == -1) error("getcom");
     if (flag == 2) break;
     memset(in_data,0,sizeof(short) * N);
@@ -199,6 +205,7 @@ void* my_send(void *args){
 	}
       }
     }
+// >>>>>>> master
     sample_to_complex(in_data,X,FN);
     fft(X,Y,FN);
     if((n=send(data->conn,Y+cut,BUFFER_SIZE,0))<0) error("send error");
@@ -323,23 +330,24 @@ int main(int argc, char const *argv[])
   int _serv = make_conn(ip,port,&addr);
   // printf("connecttion success\n");
 
-  // conn_set def_conn;
+  conn_set def_conn;
 
-  // char _port[N];
-  // int conn_port;
-  // memset(_port,'\0',N);
-  // while(1){
-  //   int n = recv(_serv,_port,N,0);
-  //   if(n<0) error("send");
-  //   if(n==0){
-  //     printf("can't recvie from server\n");
-  //     continue;
-  //   }else{
-  //     conn_port = atoi(_port);
-  //     printf("%d\n", conn_port);
-  //     break;
-  //   }
-  // }
+  char _port[N];
+  int conn_port;
+  memset(_port,'\0',N);
+  while(1){
+    int n = recv(_serv,_port,N,0);
+    if(n<0) error("send");
+    if(n==0){
+      printf("can't recvie from server\n");
+      continue;
+    }else{
+      conn_port = atoi(_port);
+      printf("%d\n", conn_port);
+      break;
+    }
+  }
+
   // int serv = socket(PF_INET,SOCK_STREAM,0);
   // if(serv==-1) error("socket");
 
@@ -349,9 +357,9 @@ int main(int argc, char const *argv[])
   // ret = connect(serv,(struct sockaddr *)&addr,sizeof(addr));
   // if(ret==-1) error("can not connect");
   // printf("connecttion success with port %d\n",conn_port);
-  // struct sockaddr_in addr_cl;
-  // int serv = make_conn(ip,conn_port,&addr_cl);
-  int serv = _serv;
+  struct sockaddr_in addr_cl;
+  int serv = make_conn(ip,conn_port,&addr_cl);
+
 
   FILE *fp;
   if((fp=popen(COMMAND,"r"))==NULL) error("popen");
