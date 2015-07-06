@@ -205,6 +205,7 @@ void *my_send(void *args) {
     }
     // >>>>>>> FFT
     sample_to_complex(in_data, X, FN);
+    // multi_winfunc(X);
     fft(X, Y, FN);
     // if((n=send(data->conn,Y+cut,BUFFER_SIZE,0))<0) error("send error");
     if (send_all(data->conn, Y + cut, BUFFER_SIZE) < 0) error("send");
@@ -239,6 +240,7 @@ void *my_recv(void *args) {
     if (n < 0) error("recv out_data error");
     if (n == 0) break;
     ifft(Y, X, FN);
+    // i_winfunc(X);
     complex_to_sample(X, out_data, FN);
     fwrite(out_data, sizeof(short), N, data->fp);
   }
@@ -273,10 +275,11 @@ int select_server(const char **ip, const char **port, int n_serv) {
   int i, n;
   char c[10];
 
-  printf(
-      "Welcome to Nyan Cat "
-      "Phone!!\n-----------------------------------\nPlease select a "
-      "server:\n");
+  printf("Welcome to ");
+  printf("\x1b[31m");
+  printf("Nyan Phone!!");
+  printf("\x1b[0m");
+  printf("\n-----------------------------------\nPlease select a server:\n");
   for (i = 1; i <= n_serv; i++) {
     printf("No.%d  ip: %s port: %s\n", i, ip[i - 1], port[i - 1]);
   }
@@ -311,9 +314,9 @@ int main(int argc, char const *argv[]) {
   /*suga*/
   int sel_serv;
   const char *ip_addr[] = {"127.0.0.1",       "127.0.0.1",   "192.168.100.139",
-                           "192.168.100.119", "157.82.5.98", "157.82.5.93"};
+                           "192.168.100.119", "157.82.5.98", "157.82.5.93","157.82.5.93","157.82.5.93"};
   const char *sel_port[] = {"50000", "50001", "50000",
-                            "50000", "50000", "50000"};
+                            "50000", "50000", "50000","50001","50002"};
 
   cls();
   sel_serv = select_server(ip_addr, sel_port,

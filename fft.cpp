@@ -272,7 +272,7 @@ void fft_r(complex<double> * x, complex<double> * y, long n, complex<double> w) 
 }
 
 double window_func(int n){
-  return 0.5-0.5*cos(2*M_PI*n/N);
+  return sin(2*M_PI*n/FN);
 }
 
 void multi_winfunc(complex<double> *data){
